@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const supabase = await createClient();
+    const admin = createAdminClient();
 
-    const { data: job, error } = await supabase
+    const { data: job, error } = await admin
       .from('jobs')
       .select('*, documents(*)')
       .eq('id', id)
