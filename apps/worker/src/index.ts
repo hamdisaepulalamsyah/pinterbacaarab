@@ -3,8 +3,10 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { processDocumentJob } from './pipeline';
 import { getLlmConfig } from './llm';
+import { generateAndUploadPdf } from './pdf';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 export function createWorkerSupabaseClient(): SupabaseClient {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -41,7 +43,18 @@ export async function runWorkerIteration(
   try {
     if (job.kind === 'process') {
       await processDocumentJob(job.id, supabase, getLlmConfig(), { mock: options.mock });
-      console.log(`[Worker] Job ${job.id} selesai diproses.`);
+      console.log(`[Worker] Job analisis ${job.id} selesai diproses.`);
+    } else if (job.kind === 'export') {
+      console.log(`[Worker] Merender & mengekspor PDF untuk dokumen ${job.document_id}...`);
+      await generateAndUploadPdf(job.document_id, supabase);
+      await supabase
+        .from('jobs')
+        .update({
+          status: 'done',
+          finished_at: new Date().toISOString(),
+        })
+        .eq('id', job.id);
+      console.log(`[Worker] Job ekspor ${job.id} selesai diproses.`);
     }
   } catch (err: any) {
     console.error(`[Worker] Gagal memproses job ${job.id}:`, err);
@@ -59,21 +72,34 @@ export async function runWorkerIteration(
 }
 
 /**
- * Loop worker utama (dapat dihentikan dengan flag shouldStop).
+ * Loop worker utama.
  */
 export async function startWorkerLoop(options: { once?: boolean; pollIntervalMs?: number } = {}) {
   const supabase = createWorkerSupabaseClient();
   const pollInterval = options.pollIntervalMs || 3000;
 
-  console.log('[Worker] Worker antrean job aktif...');
+  console.log('[Worker] Worker antrean job aktif mendengarkan Supabase...');
 
   let running = true;
   while (running) {
-    const processed = await runWorkerIteration(supabase);
-    if (options.once) break;
+    try {
+      const processed = await runWorkerIteration(supabase);
+      if (options.once) break;
 
-    if (!processed) {
+      if (!processed) {
+        await new Promise((r) => setTimeout(r, pollInterval));
+      }
+    } catch (loopErr) {
+      console.error('[Worker] Loop cycle error:', loopErr);
       await new Promise((r) => setTimeout(r, pollInterval));
     }
   }
+}
+
+// Auto-run saat dieksekusi langsung
+if (require.main === module || !process.env.VITEST) {
+  startWorkerLoop().catch((err) => {
+    console.error('[Worker] Fatal error:', err);
+    process.exit(1);
+  });
 }
