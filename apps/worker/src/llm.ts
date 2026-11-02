@@ -30,7 +30,7 @@ export function getLlmConfig(): LlmConfig {
     apiKey,
     model,
     modelReview,
-    timeoutMs: 60000,
+    timeoutMs: 120000,
   };
 }
 
@@ -78,7 +78,7 @@ export async function callLlmChat(
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), config.timeoutMs || 60000);
+      const timer = setTimeout(() => controller.abort(), config.timeoutMs || 120000);
 
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -92,6 +92,7 @@ export async function callLlmChat(
           temperature: 0.1,
           stream: false,
           response_format: { type: 'json_object' },
+          reasoning_effort: 'low',
         }),
         signal: controller.signal,
       });
