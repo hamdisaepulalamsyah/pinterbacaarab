@@ -37,31 +37,27 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
 
   // Fetch document data
   const fetchDoc = async () => {
-    const { data: d } = await supabase
-      .from('documents')
-      .select('*, segments(*, words(*))')
-      .eq('id', id)
-      .single();
-
-    if (d) {
-      setDoc(d);
-      const sortedSegs = (d.segments || []).sort((a: any, b: any) => a.position - b.position);
-      sortedSegs.forEach((seg: any) => {
-        seg.words = (seg.words || []).sort((a: any, b: any) => a.position - b.position);
-      });
-      setSegments(sortedSegs);
-
-      // Jika sudah ada pdf_path, ambil signed URL untuk unduh
-      if (d.pdf_path) {
-        const { data: urlData } = await supabase.storage
-          .from('exports')
-          .createSignedUrl(d.pdf_path, 600); // 10 menit
-        if (urlData?.signedUrl) {
-          setDownloadUrl(urlData.signedUrl);
+    try {
+      const res = await fetch(`/api/documents/${id}`);
+      if (res.ok) {
+        const data = await res.json();
+        const d = data.document;
+        setDoc(d);
+        if (data.downloadUrl) {
+          setDownloadUrl(data.downloadUrl);
         }
+
+        const sortedSegs = (d.segments || []).sort((a: any, b: any) => a.position - b.position);
+        sortedSegs.forEach((seg: any) => {
+          seg.words = (seg.words || []).sort((a: any, b: any) => a.position - b.position);
+        });
+        setSegments(sortedSegs);
       }
+    } catch (err) {
+      console.error('Failed to fetch doc:', err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -112,10 +108,11 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
       })),
     );
 
-    await supabase
-      .from('words')
-      .update({ [field]: value, edited: true })
-      .eq('id', wordId);
+    await fetch(`/api/words/${wordId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ [field]: value, edited: true }),
+    });
   };
 
   // Toggle tandai sudah dicek
@@ -127,7 +124,11 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
       })),
     );
 
-    await supabase.from('words').update({ checked: !current }).eq('id', wordId);
+    await fetch(`/api/words/${wordId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ checked: !current }),
+    });
   };
 
   // Ekspor PDF trigger

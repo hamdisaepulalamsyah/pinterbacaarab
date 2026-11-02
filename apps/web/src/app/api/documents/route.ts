@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { countWords } from '@pinterbacaarab/shared';
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await createClient();
+    const admin = createAdminClient();
     const body = await req.json();
 
     const { title, source_name, source_text, detail } = body;
@@ -21,30 +21,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Ambil user yang login (atau fallback demo user bila belum login)
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    let userId = user?.id;
-
-    if (!userId) {
-      // Demo / anonymous user fallback
-      const { data: demoUsers } = await supabase.auth.admin.listUsers();
-      if (demoUsers?.users?.length) {
-        userId = demoUsers.users[0].id;
-      } else {
-        const { data: created } = await supabase.auth.admin.createUser({
-          email: `guest_${Date.now()}@nahwustudio.local`,
-          password: 'GuestPassword123!',
-          email_confirm: true,
-        });
-        userId = created.user?.id;
+    // Ambil atau buat akun default untuk user / guest
+    let userId: string;
+    const { data: usersData } = await admin.auth.admin.listUsers();
+    if (usersData?.users && usersData.users.length > 0) {
+      userId = usersData.users[0].id;
+    } else {
+      const { data: created, error: createErr } = await admin.auth.admin.createUser({
+        email: `guest_${Date.now()}@nahwustudio.local`,
+        password: 'GuestPassword123!',
+        email_confirm: true,
+      });
+      if (createErr || !created.user) {
+        throw new Error(`Gagal inisialisasi akun pengguna: ${createErr?.message}`);
       }
+      userId = created.user.id;
     }
 
-    // 1. Simpan dokumen
-    const { data: doc, error: docError } = await supabase
+    // 1. Simpan dokumen via admin client (melewati RLS)
+    const { data: doc, error: docError } = await admin
       .from('documents')
       .insert({
         user_id: userId,
@@ -66,7 +61,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Buat job antrean
-    const { data: job, error: jobError } = await supabase
+    const { data: job, error: jobError } = await admin
       .from('jobs')
       .insert({
         document_id: doc.id,
@@ -94,5 +89,23 @@ export async function POST(req: NextRequest) {
       { error: err.message || 'Terjadi kesalahan server.' },
       { status: 500 },
     );
+  }
+}
+
+export async function GET() {
+  try {
+    const admin = createAdminClient();
+    const { data, error } = await admin
+      .from('documents')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ documents: data || [] });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

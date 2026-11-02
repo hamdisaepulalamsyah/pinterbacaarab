@@ -12,15 +12,17 @@ export default function LibraryPage() {
 
   useEffect(() => {
     async function loadDocs() {
-      const { data } = await supabase
-        .from('documents')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (data) {
-        setDocuments(data);
+      try {
+        const res = await fetch('/api/documents');
+        if (res.ok) {
+          const data = await res.json();
+          setDocuments(data.documents || []);
+        }
+      } catch (err) {
+        console.error('Failed to load documents:', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
     loadDocs();
   }, []);
