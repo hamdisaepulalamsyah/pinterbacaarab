@@ -37,7 +37,7 @@ export async function runWorkerIteration(
   options: { mock?: boolean } = {},
 ): Promise<boolean> {
   const job = await claimNextJob(supabase);
-  if (!job) return false;
+  if (!job || !job.id) return false;
 
   console.log(`[Worker] Mengambil job: ${job.id} (jenis: ${job.kind})`);
   try {
