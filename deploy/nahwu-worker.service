@@ -1,0 +1,19 @@
+[Unit]
+Description=Nahwu Studio Worker Queue Runner
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/projects/pinterbacaarab
+EnvironmentFile=/root/projects/pinterbacaarab/.env
+Environment=NODE_ENV=production
+Environment=IS_VPS=true
+ExecStart=/usr/bin/node /root/projects/pinterbacaarab/apps/worker/dist/index.js
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

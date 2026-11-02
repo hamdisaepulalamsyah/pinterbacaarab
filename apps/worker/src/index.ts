@@ -30,14 +30,17 @@ export async function claimNextJob(supabase: SupabaseClient) {
 /**
  * Menjalankan satu putaran pengecekan dan eksekusi job.
  */
-export async function runWorkerIteration(supabase: SupabaseClient): Promise<boolean> {
+export async function runWorkerIteration(
+  supabase: SupabaseClient,
+  options: { mock?: boolean } = {},
+): Promise<boolean> {
   const job = await claimNextJob(supabase);
   if (!job) return false;
 
   console.log(`[Worker] Mengambil job: ${job.id} (jenis: ${job.kind})`);
   try {
     if (job.kind === 'process') {
-      await processDocumentJob(job.id, supabase, getLlmConfig());
+      await processDocumentJob(job.id, supabase, getLlmConfig(), { mock: options.mock });
       console.log(`[Worker] Job ${job.id} selesai diproses.`);
     }
   } catch (err: any) {

@@ -110,6 +110,7 @@ export async function processDocumentJob(
   jobId: string,
   supabase: SupabaseClient,
   llmConfig?: LlmConfig,
+  options: { mock?: boolean } = {},
 ): Promise<void> {
   const config = llmConfig || getLlmConfig();
 
@@ -178,6 +179,42 @@ export async function processDocumentJob(
       prevContext,
       nextContext,
       llmConfig: config,
+      mock: options.mock,
+      mockResponseA: options.mock
+        ? JSON.stringify({
+            title: null,
+            arabic_vocalized: segmentText,
+            translation_id: `Terjemah untuk segmen: ${segmentText}`,
+            words: segmentText
+              .split(/\s+/)
+              .filter((w) => w.length > 0)
+              .map((w) => ({
+                ar: w,
+                meaning_id: `Arti ${w}`,
+                nahwu: "I'rab kata",
+                sharf: { root: null, wazan: null, tashrif: null, note: null },
+                confidence: 0.95,
+              })),
+          })
+        : undefined,
+      mockResponseB: options.mock
+        ? JSON.stringify({
+            title: null,
+            arabic_vocalized: segmentText,
+            translation_id: `Terjemah untuk segmen: ${segmentText}`,
+            words: segmentText
+              .split(/\s+/)
+              .filter((w) => w.length > 0)
+              .map((w) => ({
+                ar: w,
+                meaning_id: `Arti ${w}`,
+                nahwu: "I'rab kata",
+                sharf: { root: null, wazan: null, tashrif: null, note: null },
+                confidence: 0.95,
+              })),
+            changes: [],
+          })
+        : undefined,
     });
 
     if (result.status === 'needs_review') {

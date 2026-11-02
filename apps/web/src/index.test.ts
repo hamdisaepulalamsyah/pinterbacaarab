@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { APP_NAME } from './index';
+import { countWords } from '@pinterbacaarab/shared';
 
-describe('Web App entry', () => {
-  it('has expected app name', () => {
-    expect(APP_NAME).toBe('Nahwu Studio');
+describe('Web App Module Tests (Fase 6)', () => {
+  it('validates client-side word count helper for input limit', () => {
+    const text = 'ذهب أهل الدثور بالأجور';
+    expect(countWords(text)).toBe(4);
+    expect(countWords(text)).toBeLessThanOrEqual(3000);
   });
 });
