@@ -1,0 +1,17 @@
+{
+  "name": "pinterbacaarab",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "pnpm --filter \"@pinterbacaarab/*\" run build",
+    "lint": "prettier --check \"**/*.{ts,tsx,js,json,md}\"",
+    "typecheck": "pnpm --filter \"@pinterbacaarab/*\" run typecheck",
+    "test": "pnpm --filter \"@pinterbacaarab/*\" run test",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\""
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.0",
+    "prettier": "^3.5.0",
+    "typescript": "^5.7.3"
+  }
+}
