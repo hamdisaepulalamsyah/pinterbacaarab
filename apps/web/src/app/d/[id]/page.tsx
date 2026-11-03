@@ -92,6 +92,8 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
     }
 
     const interval = setInterval(async () => {
+      fetchDoc(); // Streaming update kata & segmen realtime
+
       if (initialJobId) {
         const res = await fetch(`/api/jobs/${initialJobId}`);
         if (res.ok) {
@@ -108,12 +110,11 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
           }
         }
       } else {
-        fetchDoc();
-        if (doc?.status === 'ready' || doc?.status === 'needs_review') {
+        if (doc?.status === 'ready' || doc?.status === 'needs_review' || doc?.status === 'exported') {
           clearInterval(interval);
         }
       }
-    }, 2500);
+    }, 2000);
 
     return () => clearInterval(interval);
   }, [initialJobId, doc?.status]);
@@ -281,10 +282,23 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
     <div className="min-h-screen bg-canvas text-ink flex flex-col pb-24 sm:pb-12">
       <Navbar />
 
-      {/* Processing Hairline Indicator */}
+      {/* Processing Live Banner */}
       {isProcessing && (
-        <div className="w-full h-1 bg-subtle overflow-hidden">
-          <div className="h-full bg-cedar w-2/5 animate-pulse"></div>
+        <div className="bg-amber-50 border-b border-amber-200 px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-amber-900 shadow-minimal">
+          <div className="flex items-center gap-2.5">
+            <Loader2 className="w-4 h-4 animate-spin text-amber-700 shrink-0" />
+            <span className="font-medium">
+              Sedang membedah dan memberi syakal naskah Arab secara bertahap...
+              {jobProgress && jobProgress.total > 0 && (
+                <span className="font-bold ml-1">
+                  (Bagian {jobProgress.done} dari {jobProgress.total} selesai)
+                </span>
+              )}
+            </span>
+          </div>
+          <span className="text-[11px] text-amber-700 font-mono">
+            Setiap bagian yang selesai langsung muncul di bawah secara realtime
+          </span>
         </div>
       )}
 

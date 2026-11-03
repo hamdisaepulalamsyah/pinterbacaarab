@@ -82,12 +82,24 @@ export function normalizeArabic(text: string): string {
 }
 
 /**
- * Memvalidasi apakah teks bersyakal memiliki konsonan yang 100% identik
- * dengan teks sumber (mengabaikan spasi berlebih dan tatweel).
+ * Normalisasi variasi huruf Arab (Alif dengan hamzah, Alif maqsura, Ta marbutha, dll)
+ * untuk validasi konsonan yang toleran terhadap ejaan imla' standar.
+ */
+export function normalizeArabicLetters(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/[إأآٱ]/g, 'ا')
+    .replace(/ى/g, 'ي')
+    .replace(/ة/g, 'ه');
+}
+
+/**
+ * Memvalidasi apakah teks bersyakal memiliki konsonan yang identik
+ * dengan teks sumber (mengabaikan spasi berlebih, tanda baca, tatweel, dan variasi imla' alif/hamzah).
  */
 export function validateConsonants(vocalized: string, source: string): boolean {
-  const cleanVocalized = stripHarakat(vocalized).replace(/\s+/g, ' ');
-  const cleanSource = stripHarakat(source).replace(/\s+/g, ' ');
+  const cleanVocalized = normalizeArabicLetters(stripHarakat(vocalized)).replace(/[^\p{L}\p{N}]/gu, '');
+  const cleanSource = normalizeArabicLetters(stripHarakat(source)).replace(/[^\p{L}\p{N}]/gu, '');
   return cleanVocalized === cleanSource;
 }
 
