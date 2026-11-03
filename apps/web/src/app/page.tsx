@@ -124,7 +124,7 @@ export default function HomePage() {
                 <span className="text-[10px] font-mono uppercase tracking-wider text-ink-muted block text-left">
                   Matan Bersyakal
                 </span>
-                <div className="font-arabic text-3xl sm:text-4xl leading-[2.5] text-ink flex flex-wrap flex-row-reverse gap-2 items-center justify-end">
+                <div dir="rtl" lang="ar" className="font-arabic text-3xl sm:text-4xl leading-[2.6] text-ink text-right">
                   {demoWords.map((w) => {
                     const isSelected = activeDemoWord.ar === w.ar;
                     return (
@@ -132,7 +132,7 @@ export default function HomePage() {
                         key={w.ar}
                         type="button"
                         onClick={() => setActiveDemoWord(w)}
-                        className={`font-arabic px-2 py-0.5 rounded-lg transition-all ${
+                        className={`inline-block mx-1 my-1 font-arabic px-2.5 py-0.5 rounded-lg transition-all cursor-pointer ${
                           isSelected
                             ? 'bg-ink text-surface font-bold shadow-minimal scale-105'
                             : 'hover:bg-subtle hover:text-cedar'

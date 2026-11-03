@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Search, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Plus, Search, ArrowRight, ArrowLeft, Trash2, Loader2 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 
 export default function LibraryPage() {
   const [documents, setDocuments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadDocs() {
@@ -34,6 +35,32 @@ export default function LibraryPage() {
     const textMatch = d.source_text?.toLowerCase().includes(q);
     return titleMatch || sourceMatch || textMatch;
   });
+
+  const handleDelete = async (docId: string, title: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!window.confirm(`Hapus naskah kajian "${title || 'Tanpa Judul'}" dari arsip? Tindakan ini tidak dapat dibatalkan.`)) {
+      return;
+    }
+
+    setDeletingId(docId);
+    try {
+      const res = await fetch(`/api/documents/${docId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setDocuments((prev) => prev.filter((d) => d.id !== docId));
+      } else {
+        const err = await res.json();
+        alert(`Gagal menghapus: ${err.error || 'Terjadi kesalahan'}`);
+      }
+    } catch (err: any) {
+      alert(`Gagal menghapus: ${err.message || 'Koneksi bermasalah'}`);
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-canvas text-ink pb-24 sm:pb-20">
@@ -116,10 +143,23 @@ export default function LibraryPage() {
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between sm:justify-end gap-3 sm:w-48 shrink-0 text-xs text-ink-muted">
+                <div className="flex items-center justify-between sm:justify-end gap-3 sm:w-56 shrink-0 text-xs text-ink-muted">
                   <span>{d.source_name || 'Kajian'}</span>
                   <span>•</span>
                   <span>{d.word_count || 0} kata</span>
+                  <button
+                    type="button"
+                    onClick={(e) => handleDelete(d.id, d.title, e)}
+                    disabled={deletingId === d.id}
+                    className="p-1.5 rounded-md text-ink-muted hover:text-red-700 hover:bg-red-50 transition ml-1"
+                    title="Hapus naskah kajian"
+                  >
+                    {deletingId === d.id ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-red-600" />
+                    ) : (
+                      <Trash2 className="w-3.5 h-3.5" />
+                    )}
+                  </button>
                   <ArrowRight className="w-3.5 h-3.5 text-ink-muted group-hover:translate-x-0.5 transition-transform" />
                 </div>
               </Link>

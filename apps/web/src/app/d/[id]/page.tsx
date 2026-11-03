@@ -33,7 +33,6 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
   const [doc, setDoc] = useState<any>(null);
   const [segments, setSegments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeSegmentIndex, setActiveSegmentIndex] = useState(0);
   const [selectedWord, setSelectedWord] = useState<any | null>(null);
   const [filterNeedsReview, setFilterNeedsReview] = useState(false);
   const [searchWordQuery, setSearchWordQuery] = useState('');
@@ -187,12 +186,10 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
     }
   };
 
-  // All words across active segment or all segments
-  const activeSegment = segments[activeSegmentIndex] || segments[0];
+  // Seluruh kata dari naskah secara utuh tanpa fragmentasi fasal
   const allWords = segments.flatMap((s) => s.words || []);
-  const activeSegmentWords = activeSegment?.words || [];
 
-  const filteredWords = (displayMode === 'split' ? activeSegmentWords : allWords).filter((w: any) => {
+  const filteredWords = allWords.filter((w: any) => {
     if (filterNeedsReview && w.checked && (w.confidence === null || w.confidence >= 0.7)) {
       return false;
     }
@@ -297,13 +294,6 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
               </div>
               <div className="h-6 w-px bg-border"></div>
               <div className="flex flex-col">
-                <span className="font-mono text-[10px] uppercase text-ink-muted tracking-wider">Fasal</span>
-                <span className="font-mono font-semibold text-ink text-sm sm:text-base tabular-nums">
-                  {segments.length}
-                </span>
-              </div>
-              <div className="h-6 w-px bg-border"></div>
-              <div className="flex flex-col">
                 <span className="font-mono text-[10px] uppercase text-ink-muted tracking-wider">Ditashih</span>
                 <span className="font-mono font-semibold text-emerald-800 text-sm sm:text-base tabular-nums">
                   {totalVerified}/{allWords.length}
@@ -358,32 +348,18 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
         </div>
       </section>
 
-      {/* Sub-toolbar: Segment Switcher & View Mode Toggle */}
+      {/* Sub-toolbar: Search & View Mode Toggle */}
       <section className="border-b border-border bg-subtle/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
-          {/* Segment Carousel / Tabs */}
-          <div className="flex items-center gap-1.5 overflow-x-auto py-0.5 no-scrollbar">
-            <span className="font-mono text-[11px] text-ink-muted uppercase mr-1 shrink-0">Fasal:</span>
-            {segments.map((seg, idx) => (
-              <button
-                key={seg.id}
-                type="button"
-                onClick={() => {
-                  setActiveSegmentIndex(idx);
-                  if (seg.words?.length > 0) setSelectedWord(seg.words[0]);
-                }}
-                className={`px-3 py-1 rounded-md font-mono text-xs transition shrink-0 ${
-                  activeSegmentIndex === idx
-                    ? 'bg-ink text-surface font-semibold shadow-minimal'
-                    : 'bg-surface border border-border text-ink-secondary hover:text-ink'
-                }`}
-              >
-                {idx + 1}
-                {seg.words?.some((w: any) => !w.checked) && (
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500 ml-1.5"></span>
-                )}
-              </button>
-            ))}
+          {/* Document Scope Indicator */}
+          <div className="flex items-center gap-2">
+            <span className="font-serif italic text-xs text-ink-secondary">
+              Naskah Lengkap
+            </span>
+            <span className="text-ink-muted text-[10px]">•</span>
+            <span className="font-mono text-[11px] text-ink-muted">
+              {filteredWords.length} dari {allWords.length} lafaz
+            </span>
           </div>
 
           {/* Right Toolbar: View Mode & Search */}
@@ -461,49 +437,62 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* Left 7 Columns: Matan Arabic Reading Box + Word Stream */}
             <div className="lg:col-span-7 space-y-6">
-              {/* Active Matan Box */}
-              <div className="p-6 sm:p-8 rounded-xl bg-surface border border-border shadow-minimal text-right space-y-4">
+              {/* Matan Naskah Lengkap (Continuous Flow) */}
+              <div className="p-6 sm:p-8 rounded-xl bg-surface border border-border shadow-minimal text-right space-y-6">
                 <div className="flex items-center justify-between border-b border-borderlight pb-3 text-xs font-mono text-ink-muted">
-                  <span className="uppercase tracking-wider">Fasal {activeSegmentIndex + 1} dari {segments.length}</span>
-                  <span>{activeSegmentWords.length} Lafaz</span>
+                  <span className="uppercase tracking-wider">Naskah Matan Bersyakal</span>
+                  <span>{allWords.length} Lafaz</span>
                 </div>
 
-                {/* Big Arabic Sentence where every word is interactive */}
-                <div className="font-arabic text-3xl sm:text-4xl leading-[2.5] text-ink flex flex-wrap flex-row-reverse gap-x-2.5 gap-y-1.5 items-center">
-                  {activeSegmentWords.map((w: any) => {
-                    const isSelected = selectedWord?.id === w.id;
-                    const needsCheck = !w.checked || (w.confidence && w.confidence < 0.7);
-
+                {/* Big Arabic Continuous Flow: dir="rtl" with inline-block words for natural right-to-left layout */}
+                <div
+                  dir="rtl"
+                  lang="ar"
+                  className="font-arabic text-2xl sm:text-3xl lg:text-4xl leading-[2.6] sm:leading-[2.8] text-ink text-right space-y-6"
+                >
+                  {segments.map((seg, sIdx) => {
+                    const segWords = seg.words || [];
                     return (
-                      <button
-                        key={w.id}
-                        type="button"
-                        onClick={() => setSelectedWord(w)}
-                        className={`font-arabic transition-all px-2 py-0.5 rounded-lg cursor-pointer ${
-                          isSelected
-                            ? 'bg-ink text-surface font-bold scale-105 shadow-minimal'
-                            : needsCheck
-                              ? 'bg-amber-50 text-amber-900 underline decoration-amber-500/80 decoration-wavy underline-offset-8 hover:bg-amber-100'
-                              : 'hover:bg-subtle hover:text-cedar'
-                        }`}
-                      >
-                        {w.ar}
-                      </button>
+                      <div key={seg.id || sIdx} className="space-y-3">
+                        <div className="leading-[2.6] sm:leading-[2.8]">
+                          {segWords.map((w: any) => {
+                            const isSelected = selectedWord?.id === w.id;
+                            const needsCheck = !w.checked || (w.confidence && w.confidence < 0.7);
+
+                            return (
+                              <button
+                                key={w.id}
+                                type="button"
+                                onClick={() => setSelectedWord(w)}
+                                className={`inline-block mx-1 my-1 font-arabic transition-all px-2.5 py-0.5 rounded-lg cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-ink text-surface font-bold scale-105 shadow-minimal'
+                                    : needsCheck
+                                      ? 'bg-amber-50 text-amber-900 underline decoration-amber-500/80 decoration-wavy underline-offset-8 hover:bg-amber-100'
+                                      : 'hover:bg-subtle hover:text-cedar'
+                                }`}
+                              >
+                                {w.ar}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* Terjemah Makna per Paragraf */}
+                        {seg.translation_id && (
+                          <div dir="ltr" className="pt-2 pb-1 border-t border-borderlight/60 text-left">
+                            <span className="text-[10px] font-mono uppercase tracking-wider text-ink-muted block mb-0.5">
+                              Terjemah Makna:
+                            </span>
+                            <p className="font-serif italic text-xs sm:text-sm text-ink-secondary leading-relaxed">
+                              &ldquo;{seg.translation_id}&rdquo;
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     );
                   })}
                 </div>
-
-                {/* Translation under sentence */}
-                {activeSegment?.translation_id && (
-                  <div className="mt-6 pt-4 border-t border-borderlight text-left">
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-ink-muted block mb-1">
-                      Terjemah Makna Fasal:
-                    </span>
-                    <p className="font-serif italic text-base sm:text-lg text-ink-secondary leading-relaxed">
-                      &ldquo;{activeSegment.translation_id}&rdquo;
-                    </p>
-                  </div>
-                )}
               </div>
 
               {/* Word List for Active Segment */}
