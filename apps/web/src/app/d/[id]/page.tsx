@@ -3,6 +3,7 @@
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { stripHarakat } from '@pinterbacaarab/shared';
 import {
   ArrowLeft,
   Download,
@@ -21,6 +22,7 @@ import {
   Columns,
   Grid,
   BookOpen,
+  Loader2,
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import NahwuBadge from '@/components/NahwuBadge';
@@ -36,6 +38,7 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
   const [selectedWord, setSelectedWord] = useState<any | null>(null);
   const [filterNeedsReview, setFilterNeedsReview] = useState(false);
   const [searchWordQuery, setSearchWordQuery] = useState('');
+  const [showHarakat, setShowHarakat] = useState(true);
   const [displayMode, setDisplayMode] = useState<'split' | 'table' | 'cards'>('split');
   const [exporting, setExporting] = useState(false);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
@@ -159,21 +162,41 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
     });
   };
 
-  // Ekspor PDF trigger
+  // Ekspor PDF trigger dengan setting showHarakat
   const handleExportPdf = async () => {
     setExporting(true);
+    setDownloadUrl(null);
     try {
       const res = await fetch(`/api/documents/${id}/export`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ showHarakat }),
       });
       const data = await res.json();
-      if (data.downloadUrl) {
-        setDownloadUrl(data.downloadUrl);
+      if (data.jobId) {
+        let attempts = 0;
+        const interval = setInterval(async () => {
+          attempts++;
+          const jRes = await fetch(`/api/jobs/${data.jobId}`);
+          if (jRes.ok) {
+            const j = await jRes.json();
+            if (j.status === 'done') {
+              clearInterval(interval);
+              setExporting(false);
+              await fetchDoc();
+            } else if (j.status === 'failed' || attempts > 30) {
+              clearInterval(interval);
+              setExporting(false);
+              alert('Gagal mengekspor PDF atau waktu proses habis.');
+            }
+          }
+        }, 1500);
+      } else {
+        setExporting(false);
+        await fetchDoc();
       }
-      fetchDoc();
     } catch (err) {
       console.error(err);
-    } finally {
       setExporting(false);
     }
   };
@@ -322,26 +345,36 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
                   {copiedLink ? <Check className="w-4 h-4 text-emerald-800" /> : <Share2 className="w-4 h-4" />}
                 </button>
 
-                {downloadUrl ? (
+                {downloadUrl && (
                   <a
                     href={downloadUrl}
                     download
-                    className="px-3.5 py-2 rounded-lg bg-ink hover:bg-stone-800 text-surface text-xs font-medium flex items-center gap-1.5 transition shadow-minimal"
+                    className="px-3.5 py-2 rounded-lg bg-emerald-800 hover:bg-emerald-900 text-surface text-xs font-medium flex items-center gap-1.5 transition shadow-minimal"
                   >
                     <Download className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Unduh PDF</span>
+                    <span>Unduh PDF</span>
                   </a>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleExportPdf}
-                    disabled={isProcessing || exporting}
-                    className="px-3.5 py-2 rounded-lg bg-cedar hover:bg-cedar-hover text-surface text-xs font-medium flex items-center gap-1.5 disabled:opacity-40 transition shadow-minimal"
-                  >
-                    <FileText className="w-3.5 h-3.5" />
-                    <span>{exporting ? 'Merender...' : 'Ekspor PDF'}</span>
-                  </button>
                 )}
+
+                <button
+                  type="button"
+                  onClick={handleExportPdf}
+                  disabled={isProcessing || exporting}
+                  className="px-3.5 py-2 rounded-lg bg-ink hover:bg-stone-800 text-surface text-xs font-medium flex items-center gap-1.5 disabled:opacity-40 transition shadow-minimal"
+                  title="Ekspor PDF A4 siap cetak dengan pengaturan syakal saat ini"
+                >
+                  {exporting ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Merender...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-3.5 h-3.5" />
+                      <span>{downloadUrl ? 'Ekspor Ulang' : 'Ekspor PDF'}</span>
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           </div>
@@ -362,8 +395,23 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
             </span>
           </div>
 
-          {/* Right Toolbar: View Mode & Search */}
+          {/* Right Toolbar: View Mode, Harakat Toggle & Search */}
           <div className="flex items-center gap-2.5">
+            {/* Toggle Syakal / Harakat */}
+            <button
+              type="button"
+              onClick={() => setShowHarakat(!showHarakat)}
+              className={`px-2.5 py-1 rounded-md border text-xs font-medium transition flex items-center gap-1.5 ${
+                showHarakat
+                  ? 'bg-surface border-border text-ink hover:border-ink/60'
+                  : 'bg-amber-100 text-amber-900 border-amber-300 font-semibold'
+              }`}
+              title={showHarakat ? 'Sembunyikan Harakat (Teks Gundul)' : 'Tampilkan Harakat (Teks Bersyakal)'}
+            >
+              <span className="font-arabic text-sm leading-none">{showHarakat ? 'َـ' : 'ـ'}</span>
+              <span>{showHarakat ? 'Harakat: Ada' : 'Harakat: Gundul'}</span>
+            </button>
+
             {/* Search Input */}
             <div className="relative">
               <Search className="w-3 h-3 text-ink-muted absolute left-2.5 top-1/2 -translate-y-1/2" />
@@ -440,7 +488,9 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
               {/* Matan Naskah Lengkap (Continuous Flow) */}
               <div className="p-6 sm:p-8 rounded-xl bg-surface border border-border shadow-minimal text-right space-y-6">
                 <div className="flex items-center justify-between border-b border-borderlight pb-3 text-xs font-mono text-ink-muted">
-                  <span className="uppercase tracking-wider">Naskah Matan Bersyakal</span>
+                  <span className="uppercase tracking-wider">
+                    {showHarakat ? 'Naskah Matan Bersyakal' : 'Naskah Matan Gundul'}
+                  </span>
                   <span>{allWords.length} Lafaz</span>
                 </div>
 
@@ -458,6 +508,7 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
                           {segWords.map((w: any) => {
                             const isSelected = selectedWord?.id === w.id;
                             const needsCheck = !w.checked || (w.confidence && w.confidence < 0.7);
+                            const displayAr = showHarakat ? w.ar : stripHarakat(w.ar);
 
                             return (
                               <button
@@ -472,7 +523,7 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
                                       : 'hover:bg-subtle hover:text-cedar'
                                 }`}
                               >
-                                {w.ar}
+                                {displayAr}
                               </button>
                             );
                           })}
@@ -505,6 +556,7 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
                 {filteredWords.map((w: any) => {
                   const isSelected = selectedWord?.id === w.id;
                   const needsCheck = !w.checked || (w.confidence && w.confidence < 0.7);
+                  const displayAr = showHarakat ? w.ar : stripHarakat(w.ar);
 
                   return (
                     <div
@@ -516,7 +568,7 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
                     >
                       <div className="flex items-baseline gap-3 sm:w-1/3">
                         <span className="font-arabic text-2xl font-bold text-ink w-20 text-right shrink-0">
-                          {w.ar}
+                          {displayAr}
                         </span>
                         <span className="text-xs text-ink-secondary font-medium line-clamp-1">
                           {w.meaning_id || '-'}
@@ -602,7 +654,7 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
                   {/* Word Big Display */}
                   <div className="text-center py-3 bg-subtle/40 rounded-lg">
                     <span className="font-arabic text-4xl text-ink font-bold leading-relaxed block">
-                      {selectedWord.ar}
+                      {showHarakat ? selectedWord.ar : stripHarakat(selectedWord.ar)}
                     </span>
                     <div className="mt-2">
                       <NahwuBadge nahwuText={selectedWord.nahwu} />
@@ -706,7 +758,7 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
                 {filteredWords.map((w: any) => (
                   <tr key={w.id} className="hover:bg-subtle/40 transition">
                     <td className="p-3 text-right font-arabic text-2xl font-bold text-ink sticky right-0 bg-surface z-10 border-l border-borderlight">
-                      {w.ar}
+                      {showHarakat ? w.ar : stripHarakat(w.ar)}
                     </td>
                     <td className="p-3">
                       <input
@@ -767,7 +819,9 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
                 className="p-4 rounded-xl bg-surface border border-border hover:border-ink/40 transition shadow-minimal flex flex-col justify-between space-y-3 cursor-pointer"
               >
                 <div className="flex items-center justify-between border-b border-borderlight pb-2">
-                  <span className="font-arabic text-3xl font-bold text-ink">{w.ar}</span>
+                  <span className="font-arabic text-3xl font-bold text-ink">
+                    {showHarakat ? w.ar : stripHarakat(w.ar)}
+                  </span>
                   <button
                     type="button"
                     onClick={(e) => {
@@ -843,7 +897,7 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
             {/* Word Centerpiece */}
             <div className="text-center py-2 bg-subtle/50 rounded-lg">
               <span className="font-arabic text-4xl text-ink font-bold leading-relaxed block">
-                {selectedWord.ar}
+                {showHarakat ? selectedWord.ar : stripHarakat(selectedWord.ar)}
               </span>
               <div className="mt-1">
                 <NahwuBadge nahwuText={selectedWord.nahwu} />

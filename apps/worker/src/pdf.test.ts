@@ -55,14 +55,21 @@ describe('PDF Generation Module (Fase 5)', () => {
     ],
   };
 
-  it('generateKajianHtml: creates semantic HTML with RTL Arabic and A4 landscape styles', () => {
+  it('generateKajianHtml: creates semantic HTML with RTL Arabic and A4 portrait styles', () => {
     const html = generateKajianHtml(sampleDocData);
     expect(html).toContain('Kajian Nahwu Hadis Abu Dzar');
     expect(html).toContain('ذَهَبَ أَهْلُ الدُّثُورِ بِالْأُجُورِ');
     expect(html).toContain('dir="rtl"');
     expect(html).toContain('lang="ar"');
-    expect(html).toContain('size: A4 landscape');
+    expect(html).toContain('size: A4 portrait');
     expect(html).toContain('words-table');
+  });
+
+  it('generateKajianHtml: strips harakat when showHarakat is false', () => {
+    const html = generateKajianHtml({ ...sampleDocData, showHarakat: false });
+    expect(html).toContain('ذهب أهل الدثور بالأجور');
+    expect(html).toContain('Teks Gundul');
+    expect(html).toContain('<td class="col-ar" dir="rtl" lang="ar">ذهب</td>');
   });
 
   it('renderHtmlToPdf: renders PDF buffer with valid %PDF header', async () => {

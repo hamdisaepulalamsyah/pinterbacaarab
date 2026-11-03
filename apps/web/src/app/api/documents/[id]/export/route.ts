@@ -4,6 +4,8 @@ import { createAdminClient } from '@/lib/supabase/admin';
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    const body = await req.json().catch(() => ({}));
+    const showHarakat = body.showHarakat !== false;
     const admin = createAdminClient();
 
     // 1. Ambil dokumen
@@ -13,7 +15,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: 'Dokumen tidak ditemukan.' }, { status: 404 });
     }
 
-    // 2. Buat job ekspor PDF
+    // 2. Buat job ekspor PDF dengan payload showHarakat
     const { data: job, error: jobErr } = await admin
       .from('jobs')
       .insert({
@@ -21,6 +23,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         user_id: doc.user_id,
         kind: 'export',
         status: 'pending',
+        payload: { showHarakat },
       })
       .select()
       .single();
@@ -29,19 +32,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: jobErr.message }, { status: 500 });
     }
 
-    // Jika sudah ada pdf_path, buat signed URL langsung
-    let downloadUrl = null;
-    if (doc.pdf_path) {
-      const { data: urlData } = await admin.storage
-        .from('exports')
-        .createSignedUrl(doc.pdf_path, 600);
-      downloadUrl = urlData?.signedUrl || null;
-    }
-
     return NextResponse.json({
       jobId: job.id,
-      downloadUrl,
       status: 'pending',
+      showHarakat,
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Internal error' }, { status: 500 });

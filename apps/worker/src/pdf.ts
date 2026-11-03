@@ -14,7 +14,7 @@ export const PLAYWRIGHT_RESOURCE_FLAGS = [
 ];
 
 /**
- * Merender markup HTML menjadi dokumen PDF A4 Landscape berkualitas tinggi.
+ * Merender markup HTML menjadi dokumen PDF A4 Portrait berkualitas tinggi.
  */
 export async function renderHtmlToPdf(html: string): Promise<Buffer> {
   const browser = await chromium.launch({
@@ -28,13 +28,13 @@ export async function renderHtmlToPdf(html: string): Promise<Buffer> {
 
     const pdfBuffer = await page.pdf({
       format: 'A4',
-      landscape: true,
+      landscape: false,
       printBackground: true,
       margin: {
-        top: '15mm',
-        right: '18mm',
-        bottom: '18mm',
-        left: '18mm',
+        top: '12mm',
+        right: '12mm',
+        bottom: '14mm',
+        left: '12mm',
       },
     });
 
@@ -51,7 +51,10 @@ export async function renderHtmlToPdf(html: string): Promise<Buffer> {
 export async function generateAndUploadPdf(
   documentId: string,
   supabase: SupabaseClient,
+  options: { showHarakat?: boolean } = {},
 ): Promise<{ path: string; buffer: Buffer }> {
+  const showHarakat = options.showHarakat !== false;
+
   // 1. Ambil data dokumen beserta segmen & words
   const { data: doc, error: docErr } = await supabase
     .from('documents')
@@ -88,6 +91,7 @@ export async function generateAndUploadPdf(
     title: doc.title,
     source_name: doc.source_name,
     segments: sortedSegments,
+    showHarakat,
   };
 
   // 2. Buat HTML dan Render ke PDF
@@ -96,7 +100,7 @@ export async function generateAndUploadPdf(
 
   // 3. Simpan ke Supabase Storage bucket 'exports'
   const sanitizedTitle = doc.title.toLowerCase().replace(/[^a-z0-9]/gi, '_');
-  const storagePath = `${doc.user_id}/${doc.id}/${sanitizedTitle}.pdf`;
+  const storagePath = `${doc.user_id}/${doc.id}/${sanitizedTitle}${showHarakat ? '' : '_gundul'}.pdf`;
 
   const { error: uploadErr } = await supabase.storage
     .from('exports')

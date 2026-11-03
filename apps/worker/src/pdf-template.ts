@@ -1,3 +1,5 @@
+import { stripHarakat } from '@pinterbacaarab/shared';
+
 export interface PdfWord {
   ar: string;
   meaning_id: string;
@@ -20,16 +22,25 @@ export interface PdfDocumentData {
   title: string;
   source_name: string | null;
   segments: PdfSegment[];
+  showHarakat?: boolean;
 }
 
 export function generateKajianHtml(doc: PdfDocumentData): string {
+  const showHarakat = doc.showHarakat !== false;
+  const isMultiSegment = doc.segments.length > 1;
+
   const segmentsHtml = doc.segments
-    .map((seg) => {
+    .map((seg, sIdx) => {
+      const arabicText = showHarakat
+        ? (seg.arabic_vocalized || '')
+        : stripHarakat(seg.arabic_vocalized || '');
+
       const rowsHtml = seg.words
-        .map(
-          (w) => `
+        .map((w) => {
+          const arWord = showHarakat ? w.ar : stripHarakat(w.ar);
+          return `
         <tr>
-          <td class="col-ar" dir="rtl" lang="ar">${w.ar}</td>
+          <td class="col-ar" dir="rtl" lang="ar">${arWord}</td>
           <td class="col-meaning">${w.meaning_id || '-'}</td>
           <td class="col-nahwu">${w.nahwu || '-'}</td>
           <td class="col-sharf">
@@ -37,35 +48,45 @@ export function generateKajianHtml(doc: PdfDocumentData): string {
             ${w.sharf_root ? `<div><strong>Akar:</strong> ${w.sharf_root}</div>` : ''}
             ${w.sharf_tashrif ? `<div><strong>Tashrif:</strong> ${w.sharf_tashrif}</div>` : ''}
             ${w.sharf_note ? `<div class="note">${w.sharf_note}</div>` : ''}
-            ${!w.sharf_wazan && !w.sharf_root ? '-' : ''}
+            ${!w.sharf_wazan && !w.sharf_root && !w.sharf_tashrif ? '-' : ''}
           </td>
-        </tr>`,
-        )
+        </tr>`;
+        })
         .join('');
 
       return `
-      <section class="segment-block">
-        <div class="segment-header">
-          <span class="segment-badge">Segmen ${seg.position}</span>
-          ${seg.title ? `<span class="segment-title">${seg.title}</span>` : ''}
-        </div>
+      <section class="segment-section">
+        ${
+          isMultiSegment
+            ? `
+        <div class="segment-label">
+          <span>Bagian ${sIdx + 1}</span>
+          ${seg.title ? `<span class="sep">•</span><span>${seg.title}</span>` : ''}
+        </div>`
+            : ''
+        }
         
         <div class="arabic-box" dir="rtl" lang="ar">
-          ${seg.arabic_vocalized || ''}
+          ${arabicText}
         </div>
 
+        ${
+          seg.translation_id
+            ? `
         <div class="translation-box">
-          <strong>Terjemah:</strong>
-          <p>${seg.translation_id || '-'}</p>
-        </div>
+          <span class="translation-tag">Terjemah:</span>
+          <span class="translation-text">&ldquo;${seg.translation_id}&rdquo;</span>
+        </div>`
+            : ''
+        }
 
         <table class="words-table">
           <thead>
             <tr>
-              <th style="width: 20%;">Lafaz (Lafadz)</th>
-              <th style="width: 25%;">Arti Per Kata</th>
-              <th style="width: 30%;">Analisis Nahwu (I'rab)</th>
-              <th style="width: 25%;">Analisis Shorof</th>
+              <th style="width: 22%; text-align: right;">Lafaz</th>
+              <th style="width: 23%;">Terjemah Arti</th>
+              <th style="width: 32%;">I'rab &amp; Kedudukan Nahwu</th>
+              <th style="width: 23%;">Morfologi Shorof</th>
             </tr>
           </thead>
           <tbody>
@@ -86,19 +107,19 @@ export function generateKajianHtml(doc: PdfDocumentData): string {
   <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     @page {
-      size: A4 landscape;
-      margin: 15mm 18mm 18mm 18mm;
+      size: A4 portrait;
+      margin: 12mm 12mm 14mm 12mm;
       @bottom-right {
         content: "Halaman " counter(page) " dari " counter(pages);
-        font-family: 'Inter', sans-serif;
-        font-size: 9pt;
-        color: #666;
+        font-family: 'Inter', system-ui, sans-serif;
+        font-size: 8pt;
+        color: #777777;
       }
       @bottom-left {
-        content: "${doc.title} — Nahwu Studio";
-        font-family: 'Inter', sans-serif;
-        font-size: 9pt;
-        color: #666;
+        content: "${doc.title} • Nahwu Studio";
+        font-family: 'Inter', system-ui, sans-serif;
+        font-size: 8pt;
+        color: #777777;
       }
     }
 
@@ -109,102 +130,139 @@ export function generateKajianHtml(doc: PdfDocumentData): string {
     }
 
     body {
-      font-family: 'Inter', sans-serif;
-      font-size: 10pt;
-      color: #1C1C1C;
-      background-color: #FAF6EE;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-size: 9pt;
+      color: #1a1a1a;
+      background-color: #ffffff;
       line-height: 1.5;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
 
     .cover-header {
-      text-align: center;
-      padding-bottom: 20px;
-      margin-bottom: 25px;
-      border-bottom: 2px solid #B8913B;
+      padding-bottom: 10px;
+      margin-bottom: 16px;
+      border-bottom: 2px solid #1F4D3A;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .doc-title-group {
+      flex: 1;
     }
 
     .doc-title {
-      font-size: 22pt;
+      font-size: 18pt;
       font-weight: 700;
       color: #1F4D3A;
-      margin-bottom: 6px;
+      letter-spacing: -0.3px;
+      line-height: 1.2;
+      margin-bottom: 3px;
     }
 
     .doc-source {
-      font-size: 11pt;
-      color: #7A6224;
+      font-size: 9pt;
+      color: #666666;
       font-style: italic;
     }
 
-    .segment-block {
-      page-break-inside: avoid;
-      margin-bottom: 30px;
-      padding: 16px;
-      background: #FFFFFF;
-      border-radius: 8px;
-      border: 1px solid #E6DEC8;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    .doc-badge-group {
+      text-align: right;
     }
 
-    .segment-header {
-      margin-bottom: 12px;
+    .badge-syakal {
+      display: inline-block;
+      font-size: 7.5pt;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: #E8F5E9;
+      color: #1F4D3A;
+      border: 1px solid #C8E6C9;
+    }
+
+    .badge-gundul {
+      display: inline-block;
+      font-size: 7.5pt;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: #FFF3E0;
+      color: #E65100;
+      border: 1px solid #FFE0B2;
+    }
+
+    .segment-section {
+      margin-bottom: 20px;
+    }
+
+    .segment-label {
+      font-size: 8pt;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #7A6224;
+      margin-bottom: 6px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 6px;
     }
 
-    .segment-badge {
-      display: inline-block;
-      background: #1F4D3A;
-      color: #FFFFFF;
-      font-size: 9pt;
-      font-weight: 600;
-      padding: 3px 10px;
-      border-radius: 4px;
-    }
-
-    .segment-title {
-      font-size: 11pt;
-      font-weight: 600;
-      color: #1F4D3A;
+    .segment-label .sep {
+      color: #cccccc;
     }
 
     .arabic-box {
-      font-family: 'Amiri', serif;
-      font-size: 22pt;
+      font-family: 'Amiri', 'Traditional Arabic', serif;
+      font-size: 21pt;
       line-height: 2.2;
-      color: #141414;
-      background: #FAF6EE;
-      padding: 14px 20px;
+      color: #111111;
+      background: #FAF8F4;
+      padding: 10px 16px;
       border-radius: 6px;
       border-right: 4px solid #1F4D3A;
-      margin-bottom: 14px;
+      margin-bottom: 10px;
       text-align: right;
+      direction: rtl;
       unicode-bidi: isolate;
+      page-break-inside: avoid;
     }
 
     .translation-box {
       background: #F4EFE6;
-      padding: 10px 14px;
-      border-radius: 6px;
-      margin-bottom: 16px;
-      font-size: 10pt;
+      padding: 8px 12px;
+      border-radius: 5px;
+      margin-bottom: 12px;
+      font-size: 9pt;
+      color: #333333;
+      page-break-inside: avoid;
+      line-height: 1.45;
     }
 
-    .translation-box strong {
-      color: #1F4D3A;
-      font-size: 9pt;
+    .translation-tag {
+      font-weight: 700;
+      font-size: 8pt;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      color: #1F4D3A;
+      margin-right: 6px;
+    }
+
+    .translation-text {
+      font-style: italic;
+      color: #444444;
     }
 
     .words-table {
       width: 100%;
       border-collapse: collapse;
-      page-break-inside: auto;
-      margin-top: 10px;
+      margin-top: 6px;
+      margin-bottom: 14px;
     }
 
     .words-table thead {
@@ -217,50 +275,62 @@ export function generateKajianHtml(doc: PdfDocumentData): string {
 
     .words-table th {
       background-color: #1F4D3A;
-      color: #FFFFFF;
+      color: #ffffff;
       text-align: left;
-      font-size: 9pt;
+      font-size: 8pt;
       font-weight: 600;
-      padding: 8px 10px;
+      padding: 6px 8px;
       border: 1px solid #16382A;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
     }
 
     .words-table td {
-      padding: 8px 10px;
-      border: 1px solid #DDD3BF;
-      font-size: 9pt;
-      vertical-align: top;
+      padding: 7px 9px;
+      border: 1px solid #E2DBCB;
+      font-size: 8.5pt;
+      vertical-align: middle;
     }
 
     .words-table tbody tr:nth-child(even) {
-      background-color: #FAF7F0;
+      background-color: #FAF8F4;
     }
 
     .words-table tbody tr:nth-child(odd) {
-      background-color: #FFFFFF;
+      background-color: #ffffff;
     }
 
+    /* Teks Arab per kata: Ukuran besar, tebal, jelas dan mudah dibaca */
     .col-ar {
-      font-family: 'Amiri', serif;
-      font-size: 17pt;
-      line-height: 1.8;
+      font-family: 'Amiri', 'Traditional Arabic', serif;
+      font-size: 22pt !important;
+      line-height: 1.4;
       color: #1F4D3A;
       font-weight: 700;
       text-align: right;
+      direction: rtl;
+      unicode-bidi: isolate;
+      white-space: nowrap;
+      padding-right: 12px !important;
     }
 
     .col-meaning {
       font-weight: 500;
-      color: #222;
+      color: #1c1c1c;
+      font-size: 8.5pt;
+      line-height: 1.4;
     }
 
     .col-nahwu {
-      color: #2D3748;
+      color: #2b2b2b;
+      font-size: 8pt;
+      line-height: 1.4;
     }
 
     .col-sharf {
-      font-size: 8.5pt;
-      color: #333;
+      font-size: 7.8pt;
+      color: #333333;
+      line-height: 1.35;
     }
 
     .col-sharf strong {
@@ -269,15 +339,22 @@ export function generateKajianHtml(doc: PdfDocumentData): string {
 
     .col-sharf .note {
       font-style: italic;
-      color: #666;
+      color: #777777;
       margin-top: 2px;
     }
   </style>
 </head>
 <body>
   <header class="cover-header">
-    <h1 class="doc-title">${doc.title}</h1>
-    ${doc.source_name ? `<div class="doc-source">Kitab / Rujukan: ${doc.source_name}</div>` : ''}
+    <div class="doc-title-group">
+      <h1 class="doc-title">${doc.title}</h1>
+      ${doc.source_name ? `<div class="doc-source">Kitab / Rujukan: ${doc.source_name}</div>` : ''}
+    </div>
+    <div class="doc-badge-group">
+      <span class="${showHarakat ? 'badge-syakal' : 'badge-gundul'}">
+        ${showHarakat ? 'Teks Bersyakal' : 'Teks Gundul'}
+      </span>
+    </div>
   </header>
 
   <main>

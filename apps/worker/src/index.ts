@@ -45,8 +45,9 @@ export async function runWorkerIteration(
       await processDocumentJob(job.id, supabase, getLlmConfig(), { mock: options.mock });
       console.log(`[Worker] Job analisis ${job.id} selesai diproses.`);
     } else if (job.kind === 'export') {
-      console.log(`[Worker] Merender & mengekspor PDF untuk dokumen ${job.document_id}...`);
-      await generateAndUploadPdf(job.document_id, supabase);
+      const showHarakat = job.payload?.showHarakat !== false;
+      console.log(`[Worker] Merender & mengekspor PDF untuk dokumen ${job.document_id} (showHarakat: ${showHarakat})...`);
+      await generateAndUploadPdf(job.document_id, supabase, { showHarakat });
       await supabase
         .from('jobs')
         .update({
