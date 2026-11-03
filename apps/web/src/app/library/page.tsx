@@ -2,17 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import {
-  FileText,
-  Plus,
-  Clock,
-  CheckCircle2,
-  AlertTriangle,
-  ArrowRight,
-  BookOpen,
-  Search,
-  Sparkles,
-} from 'lucide-react';
+import { Plus, Search, ArrowRight, ArrowLeft } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 
 export default function LibraryPage() {
@@ -46,149 +36,94 @@ export default function LibraryPage() {
   });
 
   return (
-    <div className="min-h-screen bg-parchment-pattern text-ink pb-24 md:pb-20">
+    <div className="min-h-screen bg-canvas text-ink pb-24 sm:pb-20">
       <Navbar />
 
-      <main className="max-w-6xl mx-auto px-4 py-8 md:py-12">
-        {/* Header Title & Action */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+      <main className="max-w-3xl mx-auto px-5 py-10 sm:py-14">
+        {/* Header */}
+        <div className="flex items-baseline justify-between mb-8">
           <div>
-            <h1 className="font-serif font-extrabold text-2xl md:text-4xl text-forest tracking-tight">
-              Koleksi Lembaran Kajian
+            <h1 className="font-serif text-3xl sm:text-4xl text-ink font-normal tracking-tight">
+              Arsip Kajian
             </h1>
-            <p className="text-xs md:text-sm text-ink-muted mt-1 leading-relaxed">
-              Arsip analisis teks Arab, telaah matan hadis, dan lembar i&apos;rab nahwu-shorof Anda.
+            <p className="text-xs sm:text-sm text-ink-secondary mt-1">
+              Daftar naskah hadis dan matan kitab yang telah ditelaah.
             </p>
           </div>
 
           <Link
             href="/new"
-            className="self-start sm:self-auto px-5 py-2.5 rounded-2xl bg-forest hover:bg-forest-hover text-white text-xs md:text-sm font-bold flex items-center gap-2 shadow-card border border-gold/30 transition active:scale-95"
+            className="px-4 py-1.5 rounded-full bg-ink text-surface text-xs font-medium hover:bg-stone-800 transition flex items-center gap-1.5 shadow-minimal"
           >
-            <Plus className="w-4 h-4 text-gold-light" />
+            <Plus className="w-3.5 h-3.5" />
             <span>Kajian Baru</span>
           </Link>
         </div>
 
-        {/* Search Bar */}
-        <div className="mb-6 relative">
-          <Search className="w-4 h-4 text-ink-soft absolute left-4 top-1/2 -translate-y-1/2" />
+        {/* Minimal Search Bar */}
+        <div className="mb-8 relative">
+          <Search className="w-4 h-4 text-ink-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari berdasarkan judul dokumen, sumber kitab, atau cuplikan teks Arab..."
-            className="w-full pl-11 pr-4 py-3 rounded-2xl border border-sand bg-surface text-ink placeholder:text-ink-soft/60 focus:border-forest focus:outline-none text-xs md:text-sm shadow-card transition"
+            placeholder="Cari naskah kajian..."
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-surface text-xs sm:text-sm focus:border-ink focus:outline-none transition shadow-minimal"
           />
         </div>
 
-        {/* Content Stream */}
+        {/* List */}
         {loading ? (
-          <div className="p-16 text-center text-ink-muted flex flex-col items-center justify-center gap-3">
-            <span className="font-arabic text-3xl font-bold text-forest animate-pulse">ن</span>
-            <span className="text-xs">Membuka lembaran arsip kajian...</span>
+          <div className="py-20 text-center text-xs text-ink-tertiary font-serif italic">
+            Membuka arsip...
           </div>
         ) : filteredDocs.length === 0 ? (
-          <div className="bg-surface rounded-3xl p-12 border border-sand text-center max-w-md mx-auto space-y-4 shadow-card">
-            <div className="w-16 h-16 rounded-2xl bg-forest/10 text-forest flex items-center justify-center mx-auto border border-forest/20">
-              <FileText className="w-8 h-8 text-forest" />
-            </div>
-            <h3 className="font-serif font-bold text-lg text-forest">
-              {searchQuery ? 'Tidak Ada Hasil yang Cocok' : 'Belum Ada Lembaran Kajian'}
-            </h3>
-            <p className="text-xs text-ink-muted leading-relaxed">
-              {searchQuery
-                ? 'Silakan coba kata kunci pencarian yang lain.'
-                : 'Mulai telaah teks hadis atau kutipan kitab Arab pertama Anda sekarang.'}
+          <div className="py-20 text-center space-y-3">
+            <p className="font-serif italic text-sm text-ink-muted">
+              {searchQuery ? 'Tidak ada naskah yang cocok' : 'Belum ada kajian tersimpan'}
             </p>
             {!searchQuery && (
               <Link
                 href="/new"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-forest text-white text-xs font-bold hover:bg-forest-hover transition shadow-card border border-gold/30"
+                className="inline-block text-xs font-medium text-cedar hover:underline"
               >
-                <Plus className="w-4 h-4 text-gold-light" />
-                <span>Buat Kajian Baru</span>
+                Mulai analisis kajian pertama →
               </Link>
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-            {filteredDocs.map((d) => {
-              const isReady = d.status === 'ready';
-              const isNeedsReview = d.status === 'needs_review';
-              const isProcessing = d.status === 'queued' || d.status === 'processing';
-
-              return (
-                <Link
-                  key={d.id}
-                  href={`/d/${d.id}`}
-                  className="bg-surface p-6 rounded-3xl border border-sand hover:border-forest/40 hover:shadow-card-hover transition-all flex flex-col justify-between group relative overflow-hidden"
-                >
-                  {/* Subtle Top Border Ornament on Hover */}
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-gold to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-gold-dark font-sans block mb-1">
-                          {d.source_name || 'Kajian Mandiri'}
-                        </span>
-                        <h3 className="font-serif font-bold text-base md:text-lg text-forest group-hover:text-forest-hover transition line-clamp-1">
-                          {d.title}
-                        </h3>
-                      </div>
-
-                      {/* Status Badges */}
-                      {isReady && (
-                        <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 rounded-full flex items-center gap-1 flex-shrink-0">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-700" />
-                          <span>Siap</span>
-                        </span>
-                      )}
-                      {isNeedsReview && (
-                        <span className="text-[11px] font-semibold text-amber-900 bg-amber-50 border border-amber-200/80 px-2.5 py-0.5 rounded-full flex items-center gap-1 flex-shrink-0">
-                          <AlertTriangle className="w-3 h-3" />
-                          <span>Tashih</span>
-                        </span>
-                      )}
-                      {isProcessing && (
-                        <span className="text-[11px] font-semibold text-forest bg-forest/10 border border-forest/20 px-2.5 py-0.5 rounded-full flex items-center gap-1 flex-shrink-0 animate-pulse">
-                          <Clock className="w-3 h-3 animate-spin" />
-                          <span>Proses</span>
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Arabic Text Snippet */}
-                    <div className="bg-parchment-100 p-3.5 rounded-2xl border border-sand/70 text-right">
-                      <p className="font-arabic text-lg md:text-xl text-forest line-clamp-2 leading-[2.2] select-none">
-                        {d.source_text}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Card Footer */}
-                  <div className="pt-4 mt-3 border-t border-sand/50 flex items-center justify-between text-xs text-ink-soft">
-                    <div className="flex items-center gap-3">
-                      <span>{d.word_count || 0} Kata</span>
-                      <span>•</span>
-                      <span>
-                        {new Date(d.created_at).toLocaleDateString('id-ID', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                        })}
+          <div className="divide-y divide-borderlight border-y border-borderlight">
+            {filteredDocs.map((d) => (
+              <Link
+                key={d.id}
+                href={`/d/${d.id}`}
+                className="py-5 px-2 hover:bg-subtle/50 transition flex flex-col sm:flex-row sm:items-baseline justify-between gap-3 group"
+              >
+                <div className="space-y-1 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-serif text-lg text-ink font-normal group-hover:text-cedar transition line-clamp-1">
+                      {d.title}
+                    </span>
+                    {d.status === 'needs_review' && (
+                      <span className="text-[10px] text-amber-800 bg-amber-50 px-2 py-0.2 rounded font-mono">
+                        Tashih
                       </span>
-                    </div>
-
-                    <div className="text-forest font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
-                      <span>Buka Lembaran</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </div>
+                    )}
                   </div>
-                </Link>
-              );
-            })}
+
+                  <p className="font-arabic text-xl text-ink-secondary text-right line-clamp-1 py-1">
+                    {d.source_text}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between sm:justify-end gap-3 sm:w-48 shrink-0 text-xs text-ink-muted">
+                  <span>{d.source_name || 'Kajian'}</span>
+                  <span>•</span>
+                  <span>{d.word_count || 0} kata</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-ink-muted group-hover:translate-x-0.5 transition-transform" />
+                </div>
+              </Link>
+            ))}
           </div>
         )}
       </main>

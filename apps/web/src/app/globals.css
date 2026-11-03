@@ -1,14 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Amiri+Quran&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cinzel:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Amiri+Quran&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: #FAF6EE;
-  --foreground: #1C1917;
-  --forest-green: #0F3A29;
-  --zahab-gold: #C69234;
+  --background: #FAFAF9;
+  --foreground: #18181B;
 }
 
 body {
@@ -20,50 +18,25 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Classical Arabic Font styling */
+/* Classical Naskh Arabic Typography with Generous Tashkeel Space */
 .font-arabic {
-  font-family: 'Amiri', 'Amiri Quran', 'Noto Naskh Arabic', serif;
+  font-family: 'Amiri', 'Amiri Quran', serif;
   direction: rtl;
   text-rendering: optimizeLegibility;
-  font-feature-settings: 'cv01' on, 'cv02' on;
 }
 
-.font-arabic-naskh {
-  font-family: 'Noto Naskh Arabic', 'Amiri', sans-serif;
-  direction: rtl;
-}
-
-/* Manuscript Parchment Subtle Pattern */
-.bg-parchment-pattern {
-  background-color: #FAF6EE;
-  background-image: radial-gradient(#E8DFC9 0.75px, transparent 0.75px), radial-gradient(#E8DFC9 0.75px, #FAF6EE 0.75px);
-  background-size: 30px 30px;
-  background-position: 0 0, 15px 15px;
-}
-
-/* Islamic Geometric Border accents */
-.border-arabesque {
-  border-image: linear-gradient(to right, transparent, #C69234, transparent) 1;
-}
-
-/* Custom scrollbar */
+/* Minimalist Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #F4EFE6;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #D2C4AE;
-  border-radius: 4px;
+  background: #E2E0D8;
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #C69234;
-}
-
-/* Safe touch area for mobile */
-.tap-target {
-  min-height: 44px;
-  min-width: 44px;
+  background: #C8C5BB;
 }

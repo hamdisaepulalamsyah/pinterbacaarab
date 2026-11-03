@@ -3,16 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import {
-  ArrowLeft,
-  Sparkles,
-  BookOpen,
-  AlertCircle,
-  FileText,
-  Scroll,
-  HelpCircle,
-  CheckCircle2,
-} from 'lucide-react';
+import { ArrowLeft, Sparkles, AlertCircle } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { countWords } from '@pinterbacaarab/shared';
 
@@ -27,10 +18,10 @@ export default function NewDocumentPage() {
 
   const wordCount = countWords(sourceText);
 
-  // Sampel Hadis Pilihan Siap Pakai
+  // Sampel Hadis
   const samples = [
     {
-      label: 'Hadis Arbain 1 (Niat)',
+      label: 'Hadis Niat (Arbain 1)',
       title: 'Hadis 1 Arbain — Innamal A\'malu Binniyat',
       source: 'Shahih Al-Bukhari No. 1',
       text: 'إنما الأعمال بالنيات، وإنما لكل امرئ ما نوى، فمن كانت هجرته إلى الله ورسوله فهجرته إلى الله ورسوله، ومن كانت هجرته لدنيا يصيبها أو امرأة ينكحها فهجرته إلى ما هاجر إليه.',
@@ -65,7 +56,7 @@ export default function NewDocumentPage() {
     }
 
     if (wordCount > 3000) {
-      setError('Panjang teks melebihi batas 3.000 kata per dokumen.');
+      setError('Panjang teks melebihi batas 3.000 kata.');
       return;
     }
 
@@ -96,196 +87,150 @@ export default function NewDocumentPage() {
   };
 
   return (
-    <div className="min-h-screen bg-parchment-pattern text-ink pb-24 md:pb-20">
+    <div className="min-h-screen bg-canvas text-ink pb-24 sm:pb-20">
       <Navbar />
 
-      <main className="max-w-4xl mx-auto px-4 py-8 md:py-12">
-        {/* Top Header */}
+      <main className="max-w-2xl mx-auto px-5 py-10 sm:py-16">
+        {/* Header */}
         <div className="mb-8">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-soft hover:text-forest transition mb-3"
+            className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-ink transition mb-3"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Kembali ke Beranda</span>
+            <span>Beranda</span>
           </Link>
-          <h1 className="font-serif font-extrabold text-2xl md:text-4xl text-forest tracking-tight">
-            Analisis Matan Arab Baru
+          <h1 className="font-serif text-3xl sm:text-4xl text-ink font-normal tracking-tight">
+            Kajian Matan Baru
           </h1>
-          <p className="text-xs md:text-sm text-ink-muted mt-1 leading-relaxed">
-            Ketik atau tempel teks hadis / kutipan kitab Arab gundul. Sistem akan otomatis membedah
-            I&apos;rab dan Wazan Shorof per kata.
+          <p className="text-xs sm:text-sm text-ink-secondary mt-1 leading-relaxed">
+            Tempel atau ketik teks Arab gundul untuk dibedah secara kata per kata.
           </p>
         </div>
 
-        {/* Quick Sample Selector */}
-        <div className="mb-6 p-4 rounded-2xl bg-surface border border-sand shadow-card">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-forest block mb-2 font-sans">
-            Gunakan Contoh Hadis Cepat:
-          </span>
-          <div className="flex flex-wrap gap-2">
-            {samples.map((s) => (
-              <button
-                key={s.label}
-                type="button"
-                onClick={() => handleApplySample(s)}
-                className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-sandlight hover:bg-forest hover:text-white text-forest border border-sand transition shadow-xs active:scale-95"
-              >
-                📜 {s.label}
-              </button>
-            ))}
-          </div>
+        {/* Quick Samples */}
+        <div className="flex flex-wrap items-center gap-2 mb-6">
+          <span className="text-[11px] font-mono text-ink-muted uppercase mr-1">Contoh:</span>
+          {samples.map((s) => (
+            <button
+              key={s.label}
+              type="button"
+              onClick={() => handleApplySample(s)}
+              className="px-3 py-1 rounded-full text-xs font-medium bg-surface border border-border text-ink-secondary hover:text-ink hover:bg-subtle transition active:scale-95"
+            >
+              {s.label}
+            </button>
+          ))}
         </div>
 
-        {/* Form Container */}
+        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
-            <div className="p-4 rounded-2xl bg-alert/10 border border-alert/30 text-alert flex items-start gap-3 text-sm animate-in fade-in">
-              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-              <span className="leading-relaxed">{error}</span>
+            <div className="p-4 rounded-xl bg-amber-50/80 border border-amber-200 text-amber-900 flex items-start gap-3 text-xs leading-relaxed">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>{error}</span>
             </div>
           )}
 
-          {/* Form Card */}
-          <div className="bg-surface rounded-3xl p-6 md:p-8 border border-sand shadow-card space-y-6 relative overflow-hidden">
-            {/* Title & Source Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-forest block">
-                  Judul Dokumen / Nama Kajian
+          <div className="p-6 sm:p-8 rounded-2xl bg-surface border border-borderlight shadow-minimal space-y-6">
+            {/* Title & Source */}
+            <div className="space-y-4">
+              <div>
+                <label className="text-[11px] font-mono uppercase tracking-wider text-ink-muted block mb-1.5">
+                  Judul Kajian
                 </label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Contoh: Hadis 1 Arbain Nawawi — Keutamaan Niat"
-                  className="w-full px-4 py-3 rounded-2xl border border-sand bg-parchment-50 text-ink placeholder:text-ink-soft/60 focus:border-forest focus:outline-none text-sm transition"
+                  placeholder="Misal: Hadis 1 Arbain — Keutamaan Niat"
+                  className="w-full px-3.5 py-2.5 rounded-lg border border-border bg-canvas/40 text-sm focus:border-ink focus:outline-none transition"
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-forest block">
-                  Sumber Rujukan / Kitab
+              <div>
+                <label className="text-[11px] font-mono uppercase tracking-wider text-ink-muted block mb-1.5">
+                  Kitab Rujukan (Opsional)
                 </label>
                 <input
                   type="text"
                   value={sourceName}
                   onChange={(e) => setSourceName(e.target.value)}
-                  placeholder="Contoh: Shahih Al-Bukhari No. 1 / Fathul Qorib"
-                  className="w-full px-4 py-3 rounded-2xl border border-sand bg-parchment-50 text-ink placeholder:text-ink-soft/60 focus:border-forest focus:outline-none text-sm transition"
+                  placeholder="Misal: Shahih Al-Bukhari No. 1"
+                  className="w-full px-3.5 py-2.5 rounded-lg border border-border bg-canvas/40 text-sm focus:border-ink focus:outline-none transition"
                 />
               </div>
             </div>
 
-            {/* Arabic Textarea (Matan Input) */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-bold uppercase tracking-wider text-forest flex items-center gap-1.5">
-                  <span>Matan Teks Arab (Gundul / Sebagian Syakal)</span>
-                  <span className="text-alert">*</span>
+            {/* Arabic Textarea */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-[11px] font-mono uppercase tracking-wider text-ink-muted block">
+                  Matan Teks Arab
                 </label>
-                <span
-                  className={`text-xs font-mono font-medium ${
-                    wordCount > 3000 ? 'text-alert font-bold' : 'text-ink-soft'
-                  }`}
-                >
+                <span className="text-[11px] font-mono text-ink-muted">
                   {wordCount.toLocaleString()} / 3.000 kata
                 </span>
               </div>
 
-              <div className="relative">
-                <textarea
-                  rows={7}
-                  value={sourceText}
-                  onChange={(e) => setSourceText(e.target.value)}
-                  placeholder="اكتب أو الصق النص العربي هنا بدون تشكيل..."
-                  className="w-full p-5 rounded-2xl border border-sand bg-parchment-100 text-ink placeholder:text-ink-soft/40 focus:border-forest focus:outline-none font-arabic text-xl md:text-2xl leading-[2.2] transition text-right shadow-inner"
-                  required
-                />
-              </div>
-              <p className="text-[11px] text-ink-soft leading-relaxed">
-                Tanda baca seperti titik, koma Arab (،), titik dua (:), dan tanda kutip akan
-                dipertahankan secara akurat oleh sistem validasi konsonan.
-              </p>
+              <textarea
+                rows={6}
+                value={sourceText}
+                onChange={(e) => setSourceText(e.target.value)}
+                placeholder="الصق النص العربي هنا..."
+                className="w-full p-4 rounded-xl border border-border bg-canvas/50 font-arabic text-2xl leading-[2.4] text-right focus:border-ink focus:outline-none transition shadow-inner"
+                required
+              />
             </div>
 
-            {/* Detail Mode Selection */}
-            <div className="pt-2 border-t border-sand/60">
-              <label className="text-xs font-bold uppercase tracking-wider text-forest block mb-3">
-                Tingkat Kedalaman Kajian
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <label
-                  className={`p-4 rounded-2xl border cursor-pointer transition flex items-start gap-3 ${
+            {/* Depth Mode */}
+            <div className="pt-2 border-t border-borderlight flex items-center justify-between">
+              <div>
+                <span className="text-xs font-medium text-ink block">Format Tafshil</span>
+                <span className="text-[11px] text-ink-muted">
+                  I&apos;rab lengkap, wazan shorof, dan akar kata
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDetail('full')}
+                  className={`px-3 py-1 rounded-full text-xs font-medium transition ${
                     detail === 'full'
-                      ? 'bg-forest/5 border-forest shadow-card ring-1 ring-forest'
-                      : 'bg-surface border-sand hover:bg-sandlight'
+                      ? 'bg-ink text-surface'
+                      : 'bg-subtle text-ink-secondary hover:text-ink'
                   }`}
                 >
-                  <input
-                    type="radio"
-                    name="detail"
-                    value="full"
-                    checked={detail === 'full'}
-                    onChange={() => setDetail('full')}
-                    className="mt-1 text-forest focus:ring-forest"
-                  />
-                  <div>
-                    <span className="font-bold text-sm text-forest block">
-                      Lengkap (Tafshil Pesantren)
-                    </span>
-                    <span className="text-xs text-ink-muted leading-relaxed block mt-0.5">
-                      I&apos;rab mendalam (tanda &amp; alasan), Wazan Shorof, Akar Kata (Root), dan
-                      bentuk Tashrif per lafaz.
-                    </span>
-                  </div>
-                </label>
-
-                <label
-                  className={`p-4 rounded-2xl border cursor-pointer transition flex items-start gap-3 ${
+                  Lengkap
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDetail('brief')}
+                  className={`px-3 py-1 rounded-full text-xs font-medium transition ${
                     detail === 'brief'
-                      ? 'bg-forest/5 border-forest shadow-card ring-1 ring-forest'
-                      : 'bg-surface border-sand hover:bg-sandlight'
+                      ? 'bg-ink text-surface'
+                      : 'bg-subtle text-ink-secondary hover:text-ink'
                   }`}
                 >
-                  <input
-                    type="radio"
-                    name="detail"
-                    value="brief"
-                    checked={detail === 'brief'}
-                    onChange={() => setDetail('brief')}
-                    className="mt-1 text-forest focus:ring-forest"
-                  />
-                  <div>
-                    <span className="font-bold text-sm text-forest block">Ringkas (Intisari)</span>
-                    <span className="text-xs text-ink-muted leading-relaxed block mt-0.5">
-                      Fokus pada harakat pokok, terjemah makna kata, dan kedudukan nahwu utama.
-                    </span>
-                  </div>
-                </label>
+                  Ringkas
+                </button>
               </div>
             </div>
 
-            {/* Submit Action */}
-            <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <span className="text-xs text-ink-soft hidden sm:block">
-                Estimasi pemrosesan AI: ~30-60 detik per segmen
-              </span>
-
+            {/* Submit */}
+            <div className="pt-2">
               <button
                 type="submit"
                 disabled={loading || !sourceText.trim() || wordCount > 3000}
-                className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-forest hover:bg-forest-hover text-white font-bold transition flex items-center justify-center gap-2.5 shadow-card border border-gold/40 text-sm disabled:opacity-50 active:scale-95"
+                className="w-full py-3 rounded-full bg-cedar hover:bg-cedar-hover text-surface font-medium text-xs transition flex items-center justify-center gap-2 shadow-minimal disabled:opacity-40 active:scale-98"
               >
                 {loading ? (
-                  <>
-                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                    <span>Memulai Antrean AI...</span>
-                  </>
+                  <span>Menyiapkan Analisis...</span>
                 ) : (
                   <>
-                    <Sparkles className="w-4 h-4 text-gold-light" />
-                    <span>Mulai Analisis Nahwu-Shorof</span>
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Mulai Analisis Nahwu &amp; Shorof</span>
                   </>
                 )}
               </button>
