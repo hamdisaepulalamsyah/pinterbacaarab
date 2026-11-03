@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Amiri+Quran&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cinzel:wght@600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,32 +6,64 @@
 
 :root {
   --background: #FAF6EE;
-  --foreground: #1C1C1C;
+  --foreground: #1C1917;
+  --forest-green: #0F3A29;
+  --zahab-gold: #C69234;
 }
 
 body {
   color: var(--foreground);
-  background: var(--background);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--background);
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* Classical Arabic Font styling */
 .font-arabic {
-  font-family: 'Amiri', serif;
+  font-family: 'Amiri', 'Amiri Quran', 'Noto Naskh Arabic', serif;
+  direction: rtl;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'cv01' on, 'cv02' on;
 }
 
-/* Custom scrollbar untuk tabel */
+.font-arabic-naskh {
+  font-family: 'Noto Naskh Arabic', 'Amiri', sans-serif;
+  direction: rtl;
+}
+
+/* Manuscript Parchment Subtle Pattern */
+.bg-parchment-pattern {
+  background-color: #FAF6EE;
+  background-image: radial-gradient(#E8DFC9 0.75px, transparent 0.75px), radial-gradient(#E8DFC9 0.75px, #FAF6EE 0.75px);
+  background-size: 30px 30px;
+  background-position: 0 0, 15px 15px;
+}
+
+/* Islamic Geometric Border accents */
+.border-arabesque {
+  border-image: linear-gradient(to right, transparent, #C69234, transparent) 1;
+}
+
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #FAF6EE;
+  background: #F4EFE6;
 }
 ::-webkit-scrollbar-thumb {
-  background: #D1C7B7;
+  background: #D2C4AE;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #B8913B;
+  background: #C69234;
+}
+
+/* Safe touch area for mobile */
+.tap-target {
+  min-height: 44px;
+  min-width: 44px;
 }

@@ -1,199 +1,209 @@
 import Link from 'next/link';
-import { BookOpen, Sparkles, FileText, CheckCircle2, ArrowRight } from 'lucide-react';
+import {
+  BookOpen,
+  Sparkles,
+  FileText,
+  CheckCircle2,
+  ArrowRight,
+  ShieldCheck,
+  Scroll,
+  Layers,
+  Download,
+  BookMarked,
+  Search,
+} from 'lucide-react';
+import Navbar from '@/components/Navbar';
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col min-h-screen bg-bgwarm text-ink">
-      {/* Navbar */}
-      <header className="border-b border-sand bg-surface/80 backdrop-blur sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-forest flex items-center justify-center text-white font-arabic text-2xl font-bold shadow-sm">
-              ن
-            </div>
-            <div>
-              <span className="font-bold text-lg text-forest tracking-tight block leading-tight">
-                Nahwu Studio
-              </span>
-              <span className="text-xs text-gold-dark font-medium">
-                Pinter Baca Arab & Analisis Hadis
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <Link
-              href="/library"
-              className="text-sm font-medium text-ink hover:text-forest transition"
-            >
-              Dokumen Saya
-            </Link>
-            <Link
-              href="/new"
-              className="px-4 py-2 rounded-lg bg-forest hover:bg-forest-hover text-white text-sm font-semibold transition flex items-center gap-2 shadow-sm"
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>Analisis Baru</span>
-            </Link>
-          </div>
-        </div>
-      </header>
+    <div className="flex flex-col min-h-screen bg-parchment-pattern text-ink">
+      <Navbar />
 
       {/* Hero Section */}
       <main className="flex-1 max-w-6xl mx-auto px-4 py-12 md:py-20 w-full flex flex-col items-center text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sand text-forest text-xs font-semibold mb-6 border border-gold/30">
-          <Sparkles className="w-3.5 h-3.5 text-gold-dark" />
-          <span>Didukung AI Gemini 3.8 & Validasi 100% Konsonan Identik</span>
+        {/* Subtle Badge */}
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-sandlight text-forest text-xs font-semibold mb-6 border border-gold/40 shadow-xs">
+          <span className="w-2 h-2 rounded-full bg-gold"></span>
+          <span className="font-serif">Didukung Model Bahasa Khusus Nahwu-Shorof</span>
+          <span className="text-gold-dark font-mono">100% Validasi Konsonan</span>
         </div>
 
-        <h1 className="text-3xl md:text-5xl font-extrabold text-forest max-w-3xl leading-tight md:leading-tight mb-6">
-          Ubah Teks Arab Gundul Menjadi{' '}
-          <span className="text-gold-dark underline decoration-gold/40">Kajian Nahwu-Shorof</span>{' '}
+        {/* Hero Title */}
+        <h1 className="font-serif font-extrabold text-3xl sm:text-5xl md:text-6xl text-forest max-w-4xl leading-[1.15] md:leading-[1.18] mb-6 tracking-tight">
+          Bedah Teks Arab Gundul Menjadi{' '}
+          <span className="relative inline-block text-gold-dark">
+            Kajian Nahwu &amp; Shorof
+            <span className="absolute left-0 right-0 -bottom-1 h-1 bg-gold/30 rounded-full"></span>
+          </span>{' '}
           Siap Cetak
         </h1>
 
-        <p className="text-base md:text-lg text-ink/75 max-w-2xl mb-10 leading-relaxed">
-          Ketik atau tempel teks hadis & kitab. Dapatkan harakat bersyakal presisi, terjemah
-          Indonesia per kata, bedah I&apos;rab nahwu lengkap, wazan dan tashrif shorof, serta ekspor
-          PDF format kajian rapi.
+        {/* Subtitle */}
+        <p className="text-sm sm:text-base md:text-lg text-ink-muted max-w-2xl mb-10 leading-relaxed font-normal">
+          Ubah matan hadis dan kutipan kitab kuning menjadi dokumen bersyakal presisi, terjemah
+          makna kata, uraian kedudukan I&apos;rab, wazan-tashrif shorof, serta unduh modul PDF rapi
+          khas majelis ilmu.
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center gap-4 mb-16">
+        {/* CTA Buttons */}
+        <div className="flex flex-col sm:flex-row items-center gap-3.5 w-full sm:w-auto mb-16">
           <Link
             href="/new"
-            className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-forest hover:bg-forest-hover text-white font-semibold transition flex items-center justify-center gap-3 shadow-md shadow-forest/20 text-base"
+            className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-forest hover:bg-forest-hover text-white font-bold transition flex items-center justify-center gap-3 shadow-card border border-gold/40 text-base active:scale-95"
           >
-            <span>Mulai Analisis Dokumen</span>
-            <ArrowRight className="w-5 h-5" />
+            <span>Mulai Analisis Matan</span>
+            <ArrowRight className="w-5 h-5 text-gold-light" />
           </Link>
-          <a
-            href="#contoh"
-            className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-surface hover:bg-sand text-forest font-semibold transition border border-sand text-base"
+          <Link
+            href="/library"
+            className="w-full sm:w-auto px-6 py-4 rounded-2xl bg-surface hover:bg-sandlight text-forest font-semibold transition border border-sand text-base shadow-xs"
           >
-            Lihat Contoh Hasil
-          </a>
+            Buka Koleksi Kajian
+          </Link>
         </div>
 
-        {/* Contoh Kartu Interaktif */}
+        {/* Interactive Example Card (Manuscript Preview) */}
         <div
           id="contoh"
-          className="w-full max-w-4xl text-left bg-surface rounded-2xl p-6 md:p-8 border border-sand shadow-sm mb-16"
+          className="w-full max-w-4xl text-left bg-surface rounded-3xl p-6 md:p-9 border border-sand shadow-card mb-20 relative overflow-hidden"
         >
-          <div className="flex items-center justify-between border-b border-sand pb-4 mb-6">
+          {/* Subtle Decorative Gold Corner */}
+          <div className="absolute top-0 right-0 w-24 h-24 pointer-events-none opacity-30">
+            <div className="w-full h-full border-t-2 border-r-2 border-gold rounded-tr-3xl"></div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-sand pb-4 mb-6 gap-2">
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-forest bg-sand px-2.5 py-1 rounded">
-                Contoh Hasil Kajian Hadis
+              <span className="text-[11px] font-bold uppercase tracking-wider text-forest bg-sandlight px-3 py-1 rounded-md border border-gold/30">
+                Sampel Kajian Hadis Nabawi
               </span>
-              <h3 className="font-bold text-lg text-ink mt-2">Hadis Abu Dzar — Shahih Muslim</h3>
+              <h3 className="font-serif font-bold text-lg md:text-xl text-forest mt-2">
+                Hadis Ahli Dutsur — Shahih Muslim No. 1006
+              </h3>
             </div>
-            <span className="text-xs text-forest-light bg-forest/10 px-2 py-1 rounded-full font-medium">
-              100% Lolos Validasi Konsonan
+            <span className="self-start sm:self-auto text-xs text-emerald-800 bg-emerald-50 border border-emerald-200/80 px-3 py-1 rounded-full font-semibold flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-700" />
+              <span>Konsonan 100% Terverifikasi</span>
             </span>
           </div>
 
-          <div className="bg-bgwarm p-5 rounded-xl border-r-4 border-forest mb-4 text-right">
-            <span className="font-arabic text-2xl md:text-3xl leading-loose text-ink">
-              ذَهَبَ أَهْلُ الدُّثُورِ بِالْأُجُورِ
+          {/* Matan Arab Bersyakal */}
+          <div className="bg-parchment-100 p-6 md:p-8 rounded-2xl border border-sand/80 shadow-inner mb-5 text-right">
+            <span className="font-arabic text-2xl md:text-4xl leading-[2.4] text-forest block select-text">
+              ذَهَبَ أَهْلُ الدُّثُورِ بِالْأُجُورِ ، يُصَلُّونَ كَمَا نُصَلِّي
             </span>
           </div>
 
-          <p className="text-sm text-ink/80 mb-6 bg-sand/40 p-3 rounded-lg">
-            <strong>Terjemah:</strong> Orang-orang kaya (pemilik harta melimpah) telah memborong
-            pahala.
-          </p>
+          {/* Terjemah */}
+          <div className="bg-sandlight p-4 rounded-xl border border-sand text-xs md:text-sm text-ink-muted mb-6 leading-relaxed">
+            <strong className="text-forest text-[11px] uppercase tracking-wider block mb-1">
+              Terjemah Makna:
+            </strong>
+            &ldquo;Orang-orang kaya telah memborong pahala yang banyak; mereka shalat sebagaimana
+            kami shalat, mereka puasa sebagaimana kami puasa...&rdquo;
+          </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs md:text-sm border-collapse">
+          {/* Table Preview */}
+          <div className="overflow-x-auto rounded-xl border border-sand">
+            <table className="w-full text-xs md:text-sm border-collapse bg-surface">
               <thead>
-                <tr className="bg-forest text-white">
-                  <th className="p-3 text-right font-arabic text-base">Lafaz</th>
-                  <th className="p-3 text-left">Arti Per Kata</th>
-                  <th className="p-3 text-left">I&apos;rab Nahwu</th>
-                  <th className="p-3 text-left">Shorof (Wazan / Akar)</th>
+                <tr className="bg-forest text-white font-serif">
+                  <th className="p-3 text-right font-arabic text-base w-[20%]">Lafaz</th>
+                  <th className="p-3 text-left w-[25%]">Arti Kata</th>
+                  <th className="p-3 text-left w-[35%]">I&apos;rab Nahwu</th>
+                  <th className="p-3 text-left w-[20%]">Wazan Shorof</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-sand">
-                <tr className="hover:bg-bgwarm/50">
-                  <td className="p-3 text-right font-arabic text-lg font-bold text-forest">
+                <tr className="hover:bg-sandlight/50 transition">
+                  <td className="p-3 text-right font-arabic text-xl font-bold text-forest">
                     ذَهَبَ
                   </td>
-                  <td className="p-3">telah pergi / memborong</td>
-                  <td className="p-3 text-ink/90">Fi&apos;il madhi mabni atas fathah zhahirah</td>
-                  <td className="p-3 text-xs text-ink/75">فَعَلَ (ذ-ه-ب) — Tsulatsi Mujarrad</td>
+                  <td className="p-3 text-ink-muted">Telah pergi/membawa</td>
+                  <td className="p-3 text-xs leading-relaxed">
+                    <span className="inline-block px-2 py-0.5 rounded bg-slate-100 text-slate-800 font-semibold mb-1 border border-slate-200">
+                      Fi&apos;il Madhi (مبني على الفتح)
+                    </span>
+                    <p className="text-ink-soft">Fi&apos;il madhi mabni 'alal fathi lazim.</p>
+                  </td>
+                  <td className="p-3 text-xs">
+                    <strong className="text-forest">فَعَلَ</strong>{' '}
+                    <span className="text-ink-soft">(Bab 3 - ذ-ه-ب)</span>
+                  </td>
                 </tr>
-                <tr className="hover:bg-bgwarm/50">
-                  <td className="p-3 text-right font-arabic text-lg font-bold text-forest">
+                <tr className="hover:bg-sandlight/50 transition">
+                  <td className="p-3 text-right font-arabic text-xl font-bold text-forest">
                     أَهْلُ
                   </td>
-                  <td className="p-3">pemilik / kaum</td>
-                  <td className="p-3 text-ink/90">Fa&apos;il marfu&apos; dengan dhammah, mudhaf</td>
-                  <td className="p-3 text-xs text-ink/75">فَعْلٌ (أ-ه-ل) — Isim Jamid</td>
-                </tr>
-                <tr className="hover:bg-bgwarm/50">
-                  <td className="p-3 text-right font-arabic text-lg font-bold text-forest">
-                    الدُّثُورِ
+                  <td className="p-3 text-ink-muted">Pemilik / Orang-orang</td>
+                  <td className="p-3 text-xs leading-relaxed">
+                    <span className="inline-block px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 font-semibold mb-1 border border-emerald-200">
+                      Fa&apos;il Marfu&apos; (فاعل مرفوع)
+                    </span>
+                    <p className="text-ink-soft">Fa'il marfu' dengan dhammah zhahirah, mudhaf.</p>
                   </td>
-                  <td className="p-3">harta yang melimpah</td>
-                  <td className="p-3 text-ink/90">Mudhaf ilaih majrur dengan kasrah</td>
-                  <td className="p-3 text-xs text-ink/75">فُعُولٌ (د-ث-ر) — Jamak Taksir</td>
-                </tr>
-                <tr className="hover:bg-bgwarm/50">
-                  <td className="p-3 text-right font-arabic text-lg font-bold text-forest">
-                    بِالْأُجُورِ
+                  <td className="p-3 text-xs">
+                    <strong className="text-forest">فَعْلٌ</strong>{' '}
+                    <span className="text-ink-soft">(Isim Jamid)</span>
                   </td>
-                  <td className="p-3">dengan pahala-pahala</td>
-                  <td className="p-3 text-ink/90">Jar-majrur, muta&apos;alliq dengan dzahaba</td>
-                  <td className="p-3 text-xs text-ink/75">فُعُولٌ (أ-ج-ر) — Jamak dari أَجْرٌ</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* 3 Pilar Fitur Utama */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full text-left">
-          <div className="bg-surface p-6 rounded-2xl border border-sand">
-            <div className="w-12 h-12 rounded-xl bg-forest/10 text-forest flex items-center justify-center mb-4">
-              <CheckCircle2 className="w-6 h-6" />
+        {/* Feature Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl w-full text-left">
+          <div className="p-6 rounded-3xl bg-surface border border-sand shadow-card space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-forest/10 text-forest flex items-center justify-center border border-forest/20">
+              <ShieldCheck className="w-6 h-6 text-forest" />
             </div>
-            <h4 className="font-bold text-forest text-base mb-2">Integritas Huruf 100%</h4>
-            <p className="text-sm text-ink/70 leading-relaxed">
-              Algoritma verifikasi otomatis memastikan konsonan teks sumber pengguna tidak boleh
-              diubah atau dikurangi sama sekali oleh AI.
+            <h4 className="font-serif font-bold text-base text-forest">
+              Integritas Huruf Asli 100%
+            </h4>
+            <p className="text-xs text-ink-muted leading-relaxed">
+              AI tidak diperbolehkan mengubah atau menukar satu konsonan pun dari teks sumber. Hanya
+              harakat syakal yang dibubuhkan dengan pengujian otomatis 2-pass.
             </p>
           </div>
 
-          <div className="bg-surface p-6 rounded-2xl border border-sand">
-            <div className="w-12 h-12 rounded-xl bg-gold/15 text-gold-dark flex items-center justify-center mb-4">
-              <BookOpen className="w-6 h-6" />
+          <div className="p-6 rounded-3xl bg-surface border border-sand shadow-card space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-gold/15 text-gold-dark flex items-center justify-center border border-gold/30">
+              <Scroll className="w-6 h-6 text-gold-dark" />
             </div>
-            <h4 className="font-bold text-forest text-base mb-2">Editor Sel Interaktif</h4>
-            <p className="text-sm text-ink/70 leading-relaxed">
-              Setiap hasil AI bisa dikoreksi secara inline. Sel yang memiliki tingkat keyakinan
-              rendah akan disorot untuk diperiksa ustadz atau dosen.
+            <h4 className="font-serif font-bold text-base text-forest">
+              Tafshil I&apos;rab &amp; Wazan
+            </h4>
+            <p className="text-xs text-ink-muted leading-relaxed">
+              Dilengkapi pemetaan kedudukan nahwu (Rafa&apos;, Nashab, Jar, Jazm, Mabni) dan wazan
+              shorof lengkap dengan akar kata (root) dan shighah tashrif.
             </p>
           </div>
 
-          <div className="bg-surface p-6 rounded-2xl border border-sand">
-            <div className="w-12 h-12 rounded-xl bg-forest/10 text-forest flex items-center justify-center mb-4">
-              <FileText className="w-6 h-6" />
+          <div className="p-6 rounded-3xl bg-surface border border-sand shadow-card space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-forest/10 text-forest flex items-center justify-center border border-forest/20">
+              <Download className="w-6 h-6 text-forest" />
             </div>
-            <h4 className="font-bold text-forest text-base mb-2">Ekspor PDF Format Kajian</h4>
-            <p className="text-sm text-ink/70 leading-relaxed">
-              Cetak modul kajian kitab berukuran A4 Landscape rapi dengan tipografi Arab Amiri yang
-              tersambung sempurna dan tata letak akademis.
+            <h4 className="font-serif font-bold text-base text-forest">
+              Ekspor PDF Format Majelis
+            </h4>
+            <p className="text-xs text-ink-muted leading-relaxed">
+              Cetak hasil telaah ke lembar PDF A4 landscape rapi 4 kolom berserta font naskh klasik
+              Amiri berlisensi resmi, siap dibagikan ke santri &amp; jamaah.
             </p>
           </div>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-sand bg-surface py-6 text-center text-xs text-ink/60">
-        <div className="max-w-6xl mx-auto px-4">
-          <p>
-            © 2026 Nahwu Studio. Dirancang untuk mahasiswa ilmu hadis, santri, dan pengajar bahasa
-            Arab.
-          </p>
+      <footer className="border-t border-sand bg-surface/70 py-8 text-center text-xs text-ink-soft">
+        <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2 font-serif font-bold text-forest">
+            <span>Nahwu Studio</span>
+            <span className="text-gold">•</span>
+            <span className="font-normal text-ink-soft">Pinter Baca Arab</span>
+          </div>
+          <p>© {new Date().getFullYear()} Nahwu Studio. Khidmah Ilmu Lughah Arabiyyah.</p>
         </div>
       </footer>
     </div>

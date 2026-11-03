@@ -3,7 +3,17 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Sparkles, BookOpen, AlertCircle, FileText } from 'lucide-react';
+import {
+  ArrowLeft,
+  Sparkles,
+  BookOpen,
+  AlertCircle,
+  FileText,
+  Scroll,
+  HelpCircle,
+  CheckCircle2,
+} from 'lucide-react';
+import Navbar from '@/components/Navbar';
 import { countWords } from '@pinterbacaarab/shared';
 
 export default function NewDocumentPage() {
@@ -17,14 +27,32 @@ export default function NewDocumentPage() {
 
   const wordCount = countWords(sourceText);
 
-  // Contoh hadis siap klik
-  const sampleHadith =
-    'ذهب أهل الدثور بالأجور، يصلون كما نصلي، ويصومون كما نصوم، ويتصدقون بفضول أموالهم.';
+  // Sampel Hadis Pilihan Siap Pakai
+  const samples = [
+    {
+      label: 'Hadis Arbain 1 (Niat)',
+      title: 'Hadis 1 Arbain — Innamal A\'malu Binniyat',
+      source: 'Shahih Al-Bukhari No. 1',
+      text: 'إنما الأعمال بالنيات، وإنما لكل امرئ ما نوى، فمن كانت هجرته إلى الله ورسوله فهجرته إلى الله ورسوله، ومن كانت هجرته لدنيا يصيبها أو امرأة ينكحها فهجرته إلى ما هاجر إليه.',
+    },
+    {
+      label: 'Hadis Ahli Dutsur',
+      title: 'Hadis Abu Dzar — Ahli Dutsur',
+      source: 'Shahih Muslim No. 1006',
+      text: 'ذهب أهل الدثور بالأجور، يصلون كما نصلي، ويصومون كما نصوم، ويتصدقون بفضول أموالهم.',
+    },
+    {
+      label: 'Kaidah Fiqhiyyah',
+      title: 'Kaidah Fiqh — Al-Yaqinu La Yazulu Bisy-Syakk',
+      source: 'Al-Asybah wan Nazha-ir',
+      text: 'اليقين لا يزول بالشك، والأصل بقاء ما كان على ما كان، والمشقة تجلب التيسير.',
+    },
+  ];
 
-  const handleFillSample = () => {
-    setTitle('Kajian Hadis Abu Dzar — Ahli Dutsur');
-    setSourceName('Shahih Muslim No. 1006');
-    setSourceText(sampleHadith);
+  const handleApplySample = (s: (typeof samples)[0]) => {
+    setTitle(s.title);
+    setSourceName(s.source);
+    setSourceText(s.text);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,7 +65,7 @@ export default function NewDocumentPage() {
     }
 
     if (wordCount > 3000) {
-      setError('Panjang teks melebihi batas 3.000 kata.');
+      setError('Panjang teks melebihi batas 3.000 kata per dokumen.');
       return;
     }
 
@@ -68,154 +96,200 @@ export default function NewDocumentPage() {
   };
 
   return (
-    <div className="min-h-screen bg-bgwarm text-ink pb-20">
-      {/* Header */}
-      <header className="border-b border-sand bg-surface sticky top-0 z-40">
-        <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
+    <div className="min-h-screen bg-parchment-pattern text-ink pb-24 md:pb-20">
+      <Navbar />
+
+      <main className="max-w-4xl mx-auto px-4 py-8 md:py-12">
+        {/* Top Header */}
+        <div className="mb-8">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-sm text-ink/70 hover:text-forest transition"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-soft hover:text-forest transition mb-3"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Kembali</span>
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Kembali ke Beranda</span>
           </Link>
-          <span className="font-bold text-sm text-forest">Analisis Dokumen Baru</span>
-          <button
-            type="button"
-            onClick={handleFillSample}
-            className="text-xs text-gold-dark hover:underline font-semibold"
-          >
-            Isi Contoh Hadis
-          </button>
+          <h1 className="font-serif font-extrabold text-2xl md:text-4xl text-forest tracking-tight">
+            Analisis Matan Arab Baru
+          </h1>
+          <p className="text-xs md:text-sm text-ink-muted mt-1 leading-relaxed">
+            Ketik atau tempel teks hadis / kutipan kitab Arab gundul. Sistem akan otomatis membedah
+            I&apos;rab dan Wazan Shorof per kata.
+          </p>
         </div>
-      </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-8">
+        {/* Quick Sample Selector */}
+        <div className="mb-6 p-4 rounded-2xl bg-surface border border-sand shadow-card">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-forest block mb-2 font-sans">
+            Gunakan Contoh Hadis Cepat:
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {samples.map((s) => (
+              <button
+                key={s.label}
+                type="button"
+                onClick={() => handleApplySample(s)}
+                className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-sandlight hover:bg-forest hover:text-white text-forest border border-sand transition shadow-xs active:scale-95"
+              >
+                📜 {s.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Form Container */}
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
-            <div className="p-4 rounded-xl bg-alert/10 border border-alert/30 text-alert flex items-start gap-3 text-sm">
+            <div className="p-4 rounded-2xl bg-alert/10 border border-alert/30 text-alert flex items-start gap-3 text-sm animate-in fade-in">
               <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-              <span>{error}</span>
+              <span className="leading-relaxed">{error}</span>
             </div>
           )}
 
-          {/* Metadata Dokumen */}
-          <div className="bg-surface p-6 rounded-2xl border border-sand shadow-sm space-y-4">
-            <h2 className="text-base font-bold text-forest flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              <span>Informasi Kajian</span>
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-ink/80 mb-1.5">
-                  Judul Kajian / Dokumen
+          {/* Form Card */}
+          <div className="bg-surface rounded-3xl p-6 md:p-8 border border-sand shadow-card space-y-6 relative overflow-hidden">
+            {/* Title & Source Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-forest block">
+                  Judul Dokumen / Nama Kajian
                 </label>
                 <input
                   type="text"
-                  placeholder="Mis: Bab Keutamaan Sedekah"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-lg border border-sand bg-bgwarm/40 text-sm focus:outline-none focus:border-forest"
+                  placeholder="Contoh: Hadis 1 Arbain Nawawi — Keutamaan Niat"
+                  className="w-full px-4 py-3 rounded-2xl border border-sand bg-parchment-50 text-ink placeholder:text-ink-soft/60 focus:border-forest focus:outline-none text-sm transition"
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-ink/80 mb-1.5">
-                  Nama Kitab / Sumber Rujukan
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-forest block">
+                  Sumber Rujukan / Kitab
                 </label>
                 <input
                   type="text"
-                  placeholder="Mis: Shahih Muslim, Bulughul Maram"
                   value={sourceName}
                   onChange={(e) => setSourceName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-lg border border-sand bg-bgwarm/40 text-sm focus:outline-none focus:border-forest"
+                  placeholder="Contoh: Shahih Al-Bukhari No. 1 / Fathul Qorib"
+                  className="w-full px-4 py-3 rounded-2xl border border-sand bg-parchment-50 text-ink placeholder:text-ink-soft/60 focus:border-forest focus:outline-none text-sm transition"
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-ink/80 mb-1.5">
-                Tingkat Kedalaman Analisis
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setDetail('full')}
-                  className={`p-3 rounded-xl border text-left text-xs transition ${
-                    detail === 'full'
-                      ? 'border-forest bg-forest/5 text-forest font-semibold shadow-sm'
-                      : 'border-sand hover:bg-bgwarm/30 text-ink/70'
+            {/* Arabic Textarea (Matan Input) */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold uppercase tracking-wider text-forest flex items-center gap-1.5">
+                  <span>Matan Teks Arab (Gundul / Sebagian Syakal)</span>
+                  <span className="text-alert">*</span>
+                </label>
+                <span
+                  className={`text-xs font-mono font-medium ${
+                    wordCount > 3000 ? 'text-alert font-bold' : 'text-ink-soft'
                   }`}
                 >
-                  <div className="font-bold text-sm mb-0.5">Lengkap (Rekomendasi)</div>
-                  <div>Syakal + Terjemah + I&apos;rab Nahwu + Wazan Shorof</div>
-                </button>
+                  {wordCount.toLocaleString()} / 3.000 kata
+                </span>
+              </div>
 
-                <button
-                  type="button"
-                  onClick={() => setDetail('brief')}
-                  className={`p-3 rounded-xl border text-left text-xs transition ${
-                    detail === 'brief'
-                      ? 'border-forest bg-forest/5 text-forest font-semibold shadow-sm'
-                      : 'border-sand hover:bg-bgwarm/30 text-ink/70'
+              <div className="relative">
+                <textarea
+                  rows={7}
+                  value={sourceText}
+                  onChange={(e) => setSourceText(e.target.value)}
+                  placeholder="اكتب أو الصق النص العربي هنا بدون تشكيل..."
+                  className="w-full p-5 rounded-2xl border border-sand bg-parchment-100 text-ink placeholder:text-ink-soft/40 focus:border-forest focus:outline-none font-arabic text-xl md:text-2xl leading-[2.2] transition text-right shadow-inner"
+                  required
+                />
+              </div>
+              <p className="text-[11px] text-ink-soft leading-relaxed">
+                Tanda baca seperti titik, koma Arab (،), titik dua (:), dan tanda kutip akan
+                dipertahankan secara akurat oleh sistem validasi konsonan.
+              </p>
+            </div>
+
+            {/* Detail Mode Selection */}
+            <div className="pt-2 border-t border-sand/60">
+              <label className="text-xs font-bold uppercase tracking-wider text-forest block mb-3">
+                Tingkat Kedalaman Kajian
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <label
+                  className={`p-4 rounded-2xl border cursor-pointer transition flex items-start gap-3 ${
+                    detail === 'full'
+                      ? 'bg-forest/5 border-forest shadow-card ring-1 ring-forest'
+                      : 'bg-surface border-sand hover:bg-sandlight'
                   }`}
                 >
-                  <div className="font-bold text-sm mb-0.5">Ringkas</div>
-                  <div>Syakal + Terjemah Per Kata saja (lebih cepat)</div>
-                </button>
+                  <input
+                    type="radio"
+                    name="detail"
+                    value="full"
+                    checked={detail === 'full'}
+                    onChange={() => setDetail('full')}
+                    className="mt-1 text-forest focus:ring-forest"
+                  />
+                  <div>
+                    <span className="font-bold text-sm text-forest block">
+                      Lengkap (Tafshil Pesantren)
+                    </span>
+                    <span className="text-xs text-ink-muted leading-relaxed block mt-0.5">
+                      I&apos;rab mendalam (tanda &amp; alasan), Wazan Shorof, Akar Kata (Root), dan
+                      bentuk Tashrif per lafaz.
+                    </span>
+                  </div>
+                </label>
+
+                <label
+                  className={`p-4 rounded-2xl border cursor-pointer transition flex items-start gap-3 ${
+                    detail === 'brief'
+                      ? 'bg-forest/5 border-forest shadow-card ring-1 ring-forest'
+                      : 'bg-surface border-sand hover:bg-sandlight'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="detail"
+                    value="brief"
+                    checked={detail === 'brief'}
+                    onChange={() => setDetail('brief')}
+                    className="mt-1 text-forest focus:ring-forest"
+                  />
+                  <div>
+                    <span className="font-bold text-sm text-forest block">Ringkas (Intisari)</span>
+                    <span className="text-xs text-ink-muted leading-relaxed block mt-0.5">
+                      Fokus pada harakat pokok, terjemah makna kata, dan kedudukan nahwu utama.
+                    </span>
+                  </div>
+                </label>
               </div>
             </div>
-          </div>
 
-          {/* Input Teks Arab */}
-          <div className="bg-surface p-6 rounded-2xl border border-sand shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
-              <label className="text-base font-bold text-forest flex items-center gap-2">
-                <BookOpen className="w-4 h-4" />
-                <span>Teks Arab Gundul</span>
-              </label>
-              <span
-                className={`text-xs font-semibold ${wordCount > 3000 ? 'text-alert' : 'text-ink/60'}`}
-              >
-                {wordCount} / 3.000 Kata
+            {/* Submit Action */}
+            <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <span className="text-xs text-ink-soft hidden sm:block">
+                Estimasi pemrosesan AI: ~30-60 detik per segmen
               </span>
+
+              <button
+                type="submit"
+                disabled={loading || !sourceText.trim() || wordCount > 3000}
+                className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-forest hover:bg-forest-hover text-white font-bold transition flex items-center justify-center gap-2.5 shadow-card border border-gold/40 text-sm disabled:opacity-50 active:scale-95"
+              >
+                {loading ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                    <span>Memulai Antrean AI...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 text-gold-light" />
+                    <span>Mulai Analisis Nahwu-Shorof</span>
+                  </>
+                )}
+              </button>
             </div>
-
-            <textarea
-              dir="rtl"
-              lang="ar"
-              rows={8}
-              placeholder="اكتب أو الصق النص العربي هنا..."
-              value={sourceText}
-              onChange={(e) => setSourceText(e.target.value)}
-              className="w-full p-4 rounded-xl border border-sand bg-bgwarm/30 font-arabic text-xl md:text-2xl leading-loose focus:outline-none focus:border-forest text-right resize-y min-h-[200px]"
-              required
-            />
-
-            <div className="text-xs text-ink/60 leading-relaxed bg-sand/30 p-3 rounded-lg border border-sand/50">
-              💡 <strong>Catatan Integritas:</strong> Teks Anda akan diproses oleh model AI tanpa
-              mengubah satu pun konsonan huruf aslinya. Hanya tanda syakal dan analisis gramatika
-              yang akan ditambahkan.
-            </div>
-          </div>
-
-          {/* Submit Action */}
-          <div className="flex items-center justify-end gap-3 pt-2">
-            <Link
-              href="/"
-              className="px-5 py-2.5 rounded-xl border border-sand text-ink/70 text-sm font-semibold hover:bg-sand transition"
-            >
-              Batal
-            </Link>
-            <button
-              type="submit"
-              disabled={loading || !sourceText.trim() || wordCount > 3000}
-              className="px-6 py-2.5 rounded-xl bg-forest hover:bg-forest-hover disabled:opacity-50 text-white font-semibold text-sm transition flex items-center gap-2 shadow-md shadow-forest/20"
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>{loading ? 'Memulai Antrean...' : 'Proses Analisis'}</span>
-            </button>
           </div>
         </form>
       </main>
