@@ -93,6 +93,7 @@ export async function callLlmChat(
           stream: false,
           response_format: { type: 'json_object' },
           reasoning_effort: 'low',
+          max_tokens: 8192,
         }),
         signal: controller.signal,
       });
