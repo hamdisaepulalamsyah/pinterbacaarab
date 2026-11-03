@@ -76,15 +76,27 @@ export async function processSegmentWithValidation(
   }
 
   // Pass B: Review muraji'
+  // Dioptimalkan: hanya jalankan jika mock mode, flag aktif, tidak valid, atau ada kata yang confidence-nya rendah (< 0.7)
   let review: ReviewOutput | null = null;
-  try {
-    review = await reviewSegment(segmentSource, lastOutput, {
-      config: options.llmConfig,
-      mock: options.mock,
-      mockResponse: options.mockResponseB,
-    });
-  } catch (err: any) {
-    console.warn('Pass B review warning:', err.message);
+  const hasLowConfidenceWord = lastOutput.words.some(
+    (w) => typeof w.confidence === 'number' && w.confidence < 0.7,
+  );
+  const shouldRunReview =
+    options.mock ||
+    process.env.FORCE_PASS_B === 'true' ||
+    !isValid ||
+    hasLowConfidenceWord;
+
+  if (shouldRunReview) {
+    try {
+      review = await reviewSegment(segmentSource, lastOutput, {
+        config: options.llmConfig,
+        mock: options.mock,
+        mockResponse: options.mockResponseB,
+      });
+    } catch (err: any) {
+      console.warn('Pass B review warning:', err.message);
+    }
   }
 
   const finalOutput = review || lastOutput;
@@ -130,9 +142,9 @@ export async function processDocumentJob(
     throw new Error(`Document missing for job: ${jobId}`);
   }
 
-  // 2. Normalisasi & segmentasi teks sumber (70 kata per segmen agar cepat & presisi)
+  // 2. Normalisasi & segmentasi teks sumber (85 kata per segmen agar cepat & presisi)
   const sourceText = document.source_text;
-  const segments = chunkSegments(sourceText, 70);
+  const segments = chunkSegments(sourceText, 85);
 
   await supabase
     .from('jobs')
@@ -147,20 +159,18 @@ export async function processDocumentJob(
   await supabase.from('documents').update({ status: 'processing' }).eq('id', document.id);
 
   let hasNeedsReview = false;
+  let completedCount = 0;
 
+  // Pre-create placeholder rows untuk semua segmen
+  const segmentItems: { id: string; index: number; text: string }[] = [];
   for (let i = 0; i < segments.length; i++) {
-    const segmentText = segments[i];
-    const prevContext = i > 0 ? segments[i - 1] : undefined;
-    const nextContext = i < segments.length - 1 ? segments[i + 1] : undefined;
-
-    // Simpan placeholder segmen ke DB
     const { data: segmentRow, error: segInsertErr } = await supabase
       .from('segments')
       .upsert(
         {
           document_id: document.id,
           position: i + 1,
-          source_text: segmentText,
+          source_text: segments[i],
           status: 'pending',
         },
         { onConflict: 'document_id,position' },
@@ -172,6 +182,15 @@ export async function processDocumentJob(
       console.error('Failed to create segment row:', segInsertErr);
       continue;
     }
+    segmentItems.push({ id: segmentRow.id, index: i, text: segments[i] });
+  }
+
+  // Handler pemrosesan per segmen
+  const processOneSegment = async (item: { id: string; index: number; text: string }) => {
+    const i = item.index;
+    const segmentText = item.text;
+    const prevContext = i > 0 ? segments[i - 1] : undefined;
+    const nextContext = i < segments.length - 1 ? segments[i + 1] : undefined;
 
     // Eksekusi Pass A & Pass B
     const result = await processSegmentWithValidation(segmentText, {
@@ -231,12 +250,12 @@ export async function processDocumentJob(
         status: result.status,
         error: result.error || null,
       })
-      .eq('id', segmentRow.id);
+      .eq('id', item.id);
 
     // Simpan kata-kata (words) ke DB
     if (result.segmentOutput.words.length > 0) {
       const wordsToInsert = result.segmentOutput.words.map((w, wIndex) => ({
-        segment_id: segmentRow.id,
+        segment_id: item.id,
         position: wIndex + 1,
         ar: w.ar,
         meaning_id: w.meaning_id,
@@ -251,16 +270,35 @@ export async function processDocumentJob(
       }));
 
       // Hapus data words lama bila ada retry
-      await supabase.from('words').delete().eq('segment_id', segmentRow.id);
+      await supabase.from('words').delete().eq('segment_id', item.id);
       await supabase.from('words').insert(wordsToInsert);
     }
 
     // Update progres job
+    completedCount++;
     await supabase
       .from('jobs')
-      .update({ progress_done: i + 1 })
+      .update({ progress_done: completedCount })
       .eq('id', jobId);
+  };
+
+  // Jalankan dengan konkurensi (2 paralel untuk mode nyata, 1 untuk mock)
+  const CONCURRENCY = options.mock ? 1 : 2;
+  const activePromises: Promise<void>[] = [];
+
+  for (const item of segmentItems) {
+    const promise = processOneSegment(item).then(() => {
+      const idx = activePromises.indexOf(promise);
+      if (idx !== -1) activePromises.splice(idx, 1);
+    });
+    activePromises.push(promise);
+
+    if (activePromises.length >= CONCURRENCY) {
+      await Promise.race(activePromises);
+    }
   }
+
+  await Promise.all(activePromises);
 
   // 3. Selesaikan job
   const finalDocStatus = hasNeedsReview ? 'needs_review' : 'ready';
