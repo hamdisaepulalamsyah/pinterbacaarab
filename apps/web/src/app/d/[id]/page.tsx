@@ -15,6 +15,12 @@ import {
   ChevronLeft,
   Share2,
   Check,
+  Search,
+  SlidersHorizontal,
+  Eye,
+  Columns,
+  Grid,
+  BookOpen,
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import NahwuBadge from '@/components/NahwuBadge';
@@ -27,8 +33,11 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
   const [doc, setDoc] = useState<any>(null);
   const [segments, setSegments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filterNeedsReview, setFilterNeedsReview] = useState(false);
+  const [activeSegmentIndex, setActiveSegmentIndex] = useState(0);
   const [selectedWord, setSelectedWord] = useState<any | null>(null);
+  const [filterNeedsReview, setFilterNeedsReview] = useState(false);
+  const [searchWordQuery, setSearchWordQuery] = useState('');
+  const [displayMode, setDisplayMode] = useState<'split' | 'table' | 'cards'>('split');
   const [exporting, setExporting] = useState(false);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -57,6 +66,11 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
           seg.words = (seg.words || []).sort((a: any, b: any) => a.position - b.position);
         });
         setSegments(sortedSegs);
+
+        // Auto select first word of first segment if none selected
+        if (!selectedWord && sortedSegs.length > 0 && sortedSegs[0].words?.length > 0) {
+          setSelectedWord(sortedSegs[0].words[0]);
+        }
       }
     } catch (err) {
       console.error('Failed to fetch doc:', err);
@@ -173,8 +187,27 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
     }
   };
 
-  // Flatten all words for word-by-word reader navigation
+  // All words across active segment or all segments
+  const activeSegment = segments[activeSegmentIndex] || segments[0];
   const allWords = segments.flatMap((s) => s.words || []);
+  const activeSegmentWords = activeSegment?.words || [];
+
+  const filteredWords = (displayMode === 'split' ? activeSegmentWords : allWords).filter((w: any) => {
+    if (filterNeedsReview && w.checked && (w.confidence === null || w.confidence >= 0.7)) {
+      return false;
+    }
+    if (searchWordQuery.trim()) {
+      const q = searchWordQuery.toLowerCase();
+      const matchAr = w.ar?.includes(q);
+      const matchMeaning = w.meaning_id?.toLowerCase().includes(q);
+      const matchNahwu = w.nahwu?.toLowerCase().includes(q);
+      const matchWazan = w.sharf_wazan?.toLowerCase().includes(q);
+      const matchRoot = w.sharf_root?.toLowerCase().includes(q);
+      return matchAr || matchMeaning || matchNahwu || matchWazan || matchRoot;
+    }
+    return true;
+  });
+
   const currentWordIndex = selectedWord
     ? allWords.findIndex((w) => w.id === selectedWord.id)
     : -1;
@@ -191,13 +224,17 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
     }
   };
 
+  const isProcessing = doc?.status === 'queued' || doc?.status === 'processing';
+  const totalVerified = allWords.filter((w) => w.checked).length;
+  const totalNeedsCheck = allWords.filter((w) => !w.checked || (w.confidence && w.confidence < 0.7)).length;
+
   if (loading) {
     return (
       <div className="min-h-screen bg-canvas flex flex-col">
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-          <span className="font-arabic text-3xl text-ink font-normal mb-2 opacity-60">ن</span>
-          <p className="font-serif italic text-sm text-ink-tertiary">Membuka lembaran kajian...</p>
+          <span className="font-arabic text-3xl text-ink font-normal mb-2 opacity-50">ن</span>
+          <p className="text-xs font-mono text-ink-muted">Memuat lembaran kajian...</p>
         </div>
       </div>
     );
@@ -220,266 +257,586 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
     );
   }
 
-  const isProcessing = doc.status === 'queued' || doc.status === 'processing';
-  const totalWords = allWords.length;
-
   return (
-    <div className="min-h-screen bg-canvas text-ink pb-28 sm:pb-20">
+    <div className="min-h-screen bg-canvas text-ink flex flex-col pb-24 sm:pb-12">
       <Navbar />
 
-      {/* Subtle Hairline Processing Indicator */}
+      {/* Processing Hairline Indicator */}
       {isProcessing && (
         <div className="w-full h-1 bg-subtle overflow-hidden">
           <div className="h-full bg-cedar w-2/5 animate-pulse"></div>
         </div>
       )}
 
-      {/* Document Header */}
-      <header className="border-b border-borderlight bg-surface/50">
-        <div className="max-w-4xl mx-auto px-5 py-8 md:py-10">
-          <div className="flex flex-col md:flex-row md:items-baseline justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-2 text-xs text-ink-muted font-mono">
+      {/* Workbench Header: App Proportions, Clear Metrics */}
+      <section className="border-b border-border bg-surface">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-5">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            {/* Title & Metadata */}
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-xs font-mono text-ink-muted">
                 <Link href="/library" className="hover:text-ink transition flex items-center gap-1">
-                  <ArrowLeft className="w-3 h-3" />
-                  <span>Arsip</span>
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>Koleksi</span>
                 </Link>
                 <span>/</span>
                 <span>{doc.source_name || 'Kajian Mandiri'}</span>
               </div>
-
-              <h1 className="font-serif text-2xl md:text-4xl text-ink font-normal tracking-tight">
+              <h1 className="font-serif text-xl sm:text-2xl text-ink font-medium tracking-tight">
                 {doc.title}
               </h1>
+            </div>
 
-              <div className="flex items-center gap-3 mt-3 text-xs text-ink-tertiary">
-                <span>{totalWords > 0 ? `${totalWords} Lafaz` : `${doc.word_count || 0} Kata`}</span>
-                <span>•</span>
-                <span>{segments.length} Fasal</span>
-                {doc.status === 'needs_review' && (
-                  <>
-                    <span>•</span>
-                    <span className="text-amber-800 font-medium">Perlu tashih</span>
-                  </>
+            {/* Metrics Bar (Tabular Numbers, Unslopt Craft) */}
+            <div className="flex items-center gap-4 sm:gap-6 self-start md:self-auto text-xs">
+              <div className="flex flex-col">
+                <span className="font-mono text-[10px] uppercase text-ink-muted tracking-wider">Total Lafaz</span>
+                <span className="font-mono font-semibold text-ink text-sm sm:text-base tabular-nums">
+                  {allWords.length}
+                </span>
+              </div>
+              <div className="h-6 w-px bg-border"></div>
+              <div className="flex flex-col">
+                <span className="font-mono text-[10px] uppercase text-ink-muted tracking-wider">Fasal</span>
+                <span className="font-mono font-semibold text-ink text-sm sm:text-base tabular-nums">
+                  {segments.length}
+                </span>
+              </div>
+              <div className="h-6 w-px bg-border"></div>
+              <div className="flex flex-col">
+                <span className="font-mono text-[10px] uppercase text-ink-muted tracking-wider">Ditashih</span>
+                <span className="font-mono font-semibold text-emerald-800 text-sm sm:text-base tabular-nums">
+                  {totalVerified}/{allWords.length}
+                </span>
+              </div>
+              {totalNeedsCheck > 0 && (
+                <>
+                  <div className="h-6 w-px bg-border"></div>
+                  <div className="flex flex-col">
+                    <span className="font-mono text-[10px] uppercase text-amber-800 tracking-wider">Perlu Cek</span>
+                    <span className="font-mono font-semibold text-amber-800 text-sm sm:text-base tabular-nums">
+                      {totalNeedsCheck}
+                    </span>
+                  </div>
+                </>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 pl-2">
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  className="p-2 rounded-lg border border-border text-ink-secondary hover:text-ink hover:bg-subtle transition"
+                  title="Salin Tautan"
+                >
+                  {copiedLink ? <Check className="w-4 h-4 text-emerald-800" /> : <Share2 className="w-4 h-4" />}
+                </button>
+
+                {downloadUrl ? (
+                  <a
+                    href={downloadUrl}
+                    download
+                    className="px-3.5 py-2 rounded-lg bg-ink hover:bg-stone-800 text-surface text-xs font-medium flex items-center gap-1.5 transition shadow-minimal"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Unduh PDF</span>
+                  </a>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleExportPdf}
+                    disabled={isProcessing || exporting}
+                    className="px-3.5 py-2 rounded-lg bg-cedar hover:bg-cedar-hover text-surface text-xs font-medium flex items-center gap-1.5 disabled:opacity-40 transition shadow-minimal"
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>{exporting ? 'Merender...' : 'Ekspor PDF'}</span>
+                  </button>
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      </section>
 
-            {/* Actions */}
-            <div className="flex items-center gap-2 self-start md:self-auto">
+      {/* Sub-toolbar: Segment Switcher & View Mode Toggle */}
+      <section className="border-b border-border bg-subtle/40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
+          {/* Segment Carousel / Tabs */}
+          <div className="flex items-center gap-1.5 overflow-x-auto py-0.5 no-scrollbar">
+            <span className="font-mono text-[11px] text-ink-muted uppercase mr-1 shrink-0">Fasal:</span>
+            {segments.map((seg, idx) => (
+              <button
+                key={seg.id}
+                type="button"
+                onClick={() => {
+                  setActiveSegmentIndex(idx);
+                  if (seg.words?.length > 0) setSelectedWord(seg.words[0]);
+                }}
+                className={`px-3 py-1 rounded-md font-mono text-xs transition shrink-0 ${
+                  activeSegmentIndex === idx
+                    ? 'bg-ink text-surface font-semibold shadow-minimal'
+                    : 'bg-surface border border-border text-ink-secondary hover:text-ink'
+                }`}
+              >
+                {idx + 1}
+                {seg.words?.some((w: any) => !w.checked) && (
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500 ml-1.5"></span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Right Toolbar: View Mode & Search */}
+          <div className="flex items-center gap-2.5">
+            {/* Search Input */}
+            <div className="relative">
+              <Search className="w-3 h-3 text-ink-muted absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchWordQuery}
+                onChange={(e) => setSearchWordQuery(e.target.value)}
+                placeholder="Cari lafaz / arti / wazan..."
+                className="pl-7 pr-3 py-1 rounded-md border border-border bg-surface text-xs focus:border-ink focus:outline-none w-36 sm:w-48 transition"
+              />
+            </div>
+
+            {/* Filter Toggle */}
+            <button
+              type="button"
+              onClick={() => setFilterNeedsReview(!filterNeedsReview)}
+              className={`px-2.5 py-1 rounded-md border text-xs font-medium transition flex items-center gap-1 ${
+                filterNeedsReview
+                  ? 'bg-amber-100 text-amber-900 border-amber-300'
+                  : 'bg-surface border-border text-ink-secondary hover:text-ink'
+              }`}
+            >
+              <Filter className="w-3 h-3" />
+              <span className="hidden sm:inline">Perlu Cek</span>
+            </button>
+
+            {/* View Mode Switcher */}
+            <div className="hidden sm:inline-flex rounded-md border border-border bg-surface p-0.5">
               <button
                 type="button"
-                onClick={handleShare}
-                className="px-3 py-1.5 rounded-full border border-border text-xs text-ink-secondary hover:text-ink hover:bg-subtle transition flex items-center gap-1.5"
-                title="Salin Tautan"
+                onClick={() => setDisplayMode('split')}
+                className={`px-2.5 py-0.5 rounded text-xs font-medium transition flex items-center gap-1 ${
+                  displayMode === 'split' ? 'bg-subtle text-ink font-semibold' : 'text-ink-muted hover:text-ink'
+                }`}
+                title="Tampilan Studio (Matan & Panel Bedah)"
               >
-                {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-700" /> : <Share2 className="w-3.5 h-3.5" />}
-                <span>{copiedLink ? 'Tersalin' : 'Bagikan'}</span>
+                <Columns className="w-3 h-3" />
+                <span>Studio</span>
               </button>
-
-              {downloadUrl ? (
-                <a
-                  href={downloadUrl}
-                  download
-                  className="px-4 py-1.5 rounded-full bg-ink hover:bg-stone-800 text-surface text-xs font-medium flex items-center gap-1.5 transition shadow-minimal"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Unduh PDF</span>
-                </a>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleExportPdf}
-                  disabled={isProcessing || exporting}
-                  className="px-4 py-1.5 rounded-full bg-cedar hover:bg-cedar-hover text-surface text-xs font-medium flex items-center gap-1.5 disabled:opacity-40 transition shadow-minimal"
-                >
-                  <FileText className="w-3.5 h-3.5" />
-                  <span>{exporting ? 'Merender...' : 'Ekspor PDF'}</span>
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => setDisplayMode('table')}
+                className={`px-2.5 py-0.5 rounded text-xs font-medium transition flex items-center gap-1 ${
+                  displayMode === 'table' ? 'bg-subtle text-ink font-semibold' : 'text-ink-muted hover:text-ink'
+                }`}
+                title="Tabel Kajian Lengkap"
+              >
+                <FileText className="w-3 h-3" />
+                <span>Tabel</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setDisplayMode('cards')}
+                className={`px-2.5 py-0.5 rounded text-xs font-medium transition flex items-center gap-1 ${
+                  displayMode === 'cards' ? 'bg-subtle text-ink font-semibold' : 'text-ink-muted hover:text-ink'
+                }`}
+                title="Grid Kartu Kata"
+              >
+                <Grid className="w-3 h-3" />
+                <span>Kartu</span>
+              </button>
             </div>
           </div>
         </div>
-      </header>
+      </section>
 
-      {/* Main Reading Flow */}
-      <main className="max-w-4xl mx-auto px-5 py-8 md:py-12">
-        {/* Subtle Filter Toggle */}
-        <div className="flex items-center justify-between mb-8 pb-3 border-b border-borderlight">
-          <span className="text-xs text-ink-muted">
-            Ketuk lafaz untuk menelaah i&apos;rab dan wazan shorof.
-          </span>
-          <button
-            type="button"
-            onClick={() => setFilterNeedsReview(!filterNeedsReview)}
-            className={`text-xs font-medium transition flex items-center gap-1.5 ${
-              filterNeedsReview ? 'text-amber-900 font-semibold' : 'text-ink-tertiary hover:text-ink'
-            }`}
-          >
-            <Filter className="w-3 h-3" />
-            <span>{filterNeedsReview ? 'Menampilkan: Perlu Tashih' : 'Saring Perlu Tashih'}</span>
-          </button>
-        </div>
-
-        {/* Segments Stream */}
-        <div className="space-y-16">
-          {segments.map((seg, sIdx) => {
-            const displayWords = filterNeedsReview
-              ? seg.words.filter((w: any) => !w.checked || (w.confidence && w.confidence < 0.7))
-              : seg.words;
-
-            return (
-              <section key={seg.id} className="space-y-8">
-                {/* Minimal Segment Number */}
-                <div className="flex items-center gap-3">
-                  <span className="font-mono text-[11px] text-ink-muted uppercase tracking-widest">
-                    Fasal {seg.position}
-                  </span>
-                  <div className="flex-1 h-px bg-borderlight"></div>
+      {/* Main Stage: Asymmetric Split / Real App Proportions */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex-1 w-full">
+        {displayMode === 'split' ? (
+          /* Mode Studio: Matan Sentence on Left + Interactive Word Inspector on Right */
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* Left 7 Columns: Matan Arabic Reading Box + Word Stream */}
+            <div className="lg:col-span-7 space-y-6">
+              {/* Active Matan Box */}
+              <div className="p-6 sm:p-8 rounded-xl bg-surface border border-border shadow-minimal text-right space-y-4">
+                <div className="flex items-center justify-between border-b border-borderlight pb-3 text-xs font-mono text-ink-muted">
+                  <span className="uppercase tracking-wider">Fasal {activeSegmentIndex + 1} dari {segments.length}</span>
+                  <span>{activeSegmentWords.length} Lafaz</span>
                 </div>
 
-                {/* The Matan Arabic Text (Pure, calm, dignified reading experience) */}
-                <div className="p-6 md:p-8 rounded-2xl bg-surface border border-borderlight shadow-minimal text-right">
-                  <div className="font-arabic text-2xl md:text-3xl leading-[2.6] text-ink flex flex-wrap flex-row-reverse gap-x-2 gap-y-1 items-center">
-                    {(seg.words || []).map((w: any) => {
-                      const isSelected = selectedWord?.id === w.id;
-                      const needsCheck = !w.checked || (w.confidence && w.confidence < 0.7);
-
-                      return (
-                        <button
-                          key={w.id}
-                          type="button"
-                          onClick={() => setSelectedWord(w)}
-                          className={`font-arabic transition-all px-1.5 py-0.5 rounded cursor-pointer ${
-                            isSelected
-                              ? 'bg-ink text-surface font-semibold scale-105 shadow-minimal'
-                              : needsCheck
-                                ? 'underline decoration-amber-500/60 decoration-wavy underline-offset-8 hover:bg-subtle'
-                                : 'hover:bg-subtle hover:text-cedar'
-                          }`}
-                        >
-                          {w.ar}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Translation in Quiet Editorial Serif */}
-                  {seg.translation_id && (
-                    <div className="mt-6 pt-5 border-t border-borderlight text-left">
-                      <p className="font-serif italic text-base md:text-lg text-ink-secondary leading-relaxed">
-                        &ldquo;{seg.translation_id}&rdquo;
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Word-by-Word Study Stream (Minimalist, quiet, no clutter) */}
-                <div className="divide-y divide-borderlight border-y border-borderlight">
-                  {displayWords.map((w: any) => {
+                {/* Big Arabic Sentence where every word is interactive */}
+                <div className="font-arabic text-3xl sm:text-4xl leading-[2.5] text-ink flex flex-wrap flex-row-reverse gap-x-2.5 gap-y-1.5 items-center">
+                  {activeSegmentWords.map((w: any) => {
                     const isSelected = selectedWord?.id === w.id;
                     const needsCheck = !w.checked || (w.confidence && w.confidence < 0.7);
 
                     return (
-                      <div
+                      <button
                         key={w.id}
-                        id={`word-${w.id}`}
+                        type="button"
                         onClick={() => setSelectedWord(w)}
-                        className={`py-3.5 px-3 rounded-lg transition-all cursor-pointer flex flex-col sm:flex-row sm:items-baseline justify-between gap-3 ${
+                        className={`font-arabic transition-all px-2 py-0.5 rounded-lg cursor-pointer ${
                           isSelected
-                            ? 'bg-subtle ring-1 ring-border'
-                            : 'hover:bg-subtle/50'
+                            ? 'bg-ink text-surface font-bold scale-105 shadow-minimal'
+                            : needsCheck
+                              ? 'bg-amber-50 text-amber-900 underline decoration-amber-500/80 decoration-wavy underline-offset-8 hover:bg-amber-100'
+                              : 'hover:bg-subtle hover:text-cedar'
                         }`}
                       >
-                        {/* Word & Meaning */}
-                        <div className="flex items-baseline gap-4 sm:w-1/3">
-                          <span className="font-arabic text-2xl font-bold text-ink w-20 text-right shrink-0">
-                            {w.ar}
-                          </span>
-                          <span className="text-xs text-ink-secondary font-medium line-clamp-1">
-                            {w.meaning_id || '-'}
-                          </span>
-                        </div>
-
-                        {/* Nahwu & Case */}
-                        <div className="flex-1 sm:px-4 space-y-1">
-                          <div className="flex items-center gap-2">
-                            <NahwuBadge nahwuText={w.nahwu} />
-                          </div>
-                          <p className="text-xs text-ink-tertiary leading-relaxed">
-                            {w.nahwu || '-'}
-                          </p>
-                        </div>
-
-                        {/* Shorof & Status */}
-                        <div className="flex items-center justify-between sm:justify-end gap-3 sm:w-1/4 shrink-0 text-right">
-                          <div className="text-xs text-ink-muted">
-                            {w.sharf_wazan && (
-                              <span className="font-arabic text-sm text-ink-secondary mr-2">
-                                {w.sharf_wazan}
-                              </span>
-                            )}
-                            {w.sharf_root && (
-                              <span className="text-[11px] font-mono text-ink-tertiary">
-                                [{w.sharf_root}]
-                              </span>
-                            )}
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleToggleChecked(w.id, w.checked);
-                            }}
-                            className={`p-1 rounded transition ${
-                              w.checked ? 'text-ink-muted hover:text-ink' : 'text-amber-800'
-                            }`}
-                            title={w.checked ? 'Sudah ditashih' : 'Perlu ditashih'}
-                          >
-                            {w.checked ? (
-                              <CheckCircle2 className="w-4 h-4 text-stone-400" />
-                            ) : (
-                              <AlertTriangle className="w-4 h-4 text-amber-700" />
-                            )}
-                          </button>
-                        </div>
-                      </div>
+                        {w.ar}
+                      </button>
                     );
                   })}
                 </div>
-              </section>
-            );
-          })}
-        </div>
+
+                {/* Translation under sentence */}
+                {activeSegment?.translation_id && (
+                  <div className="mt-6 pt-4 border-t border-borderlight text-left">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-ink-muted block mb-1">
+                      Terjemah Makna Fasal:
+                    </span>
+                    <p className="font-serif italic text-base sm:text-lg text-ink-secondary leading-relaxed">
+                      &ldquo;{activeSegment.translation_id}&rdquo;
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Word List for Active Segment */}
+              <div className="bg-surface rounded-xl border border-border divide-y divide-borderlight shadow-minimal overflow-hidden">
+                <div className="px-4 py-2.5 bg-subtle/50 text-xs font-mono text-ink-muted flex items-center justify-between">
+                  <span>Daftar Lafaz &amp; I&apos;rab</span>
+                  <span>{filteredWords.length} kata</span>
+                </div>
+
+                {filteredWords.map((w: any) => {
+                  const isSelected = selectedWord?.id === w.id;
+                  const needsCheck = !w.checked || (w.confidence && w.confidence < 0.7);
+
+                  return (
+                    <div
+                      key={w.id}
+                      onClick={() => setSelectedWord(w)}
+                      className={`p-3.5 sm:px-4 transition-all cursor-pointer flex flex-col sm:flex-row sm:items-baseline justify-between gap-3 ${
+                        isSelected ? 'bg-subtle ring-1 ring-border' : 'hover:bg-subtle/40'
+                      }`}
+                    >
+                      <div className="flex items-baseline gap-3 sm:w-1/3">
+                        <span className="font-arabic text-2xl font-bold text-ink w-20 text-right shrink-0">
+                          {w.ar}
+                        </span>
+                        <span className="text-xs text-ink-secondary font-medium line-clamp-1">
+                          {w.meaning_id || '-'}
+                        </span>
+                      </div>
+
+                      <div className="flex-1 sm:px-3 space-y-1">
+                        <NahwuBadge nahwuText={w.nahwu} />
+                        <p className="text-xs text-ink-tertiary leading-relaxed line-clamp-1">
+                          {w.nahwu || '-'}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between sm:justify-end gap-3 sm:w-1/4 shrink-0 text-right">
+                        <div className="text-xs text-ink-muted">
+                          {w.sharf_wazan && (
+                            <span className="font-arabic text-sm text-ink-secondary mr-1">
+                              {w.sharf_wazan}
+                            </span>
+                          )}
+                          {w.sharf_root && (
+                            <span className="text-[10px] font-mono text-ink-tertiary">
+                              [{w.sharf_root}]
+                            </span>
+                          )}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleChecked(w.id, w.checked);
+                          }}
+                          className="p-1 rounded text-ink-muted hover:text-ink transition"
+                          title={w.checked ? 'Sudah ditashih' : 'Perlu ditashih'}
+                        >
+                          {w.checked ? (
+                            <CheckCircle2 className="w-4 h-4 text-emerald-800" />
+                          ) : (
+                            <AlertTriangle className="w-4 h-4 text-amber-700" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Right 5 Columns: Dedicated Word Inspector Panel (Sticky Desktop) */}
+            <div className="lg:col-span-5 sticky top-20 hidden lg:block">
+              {selectedWord ? (
+                <div className="bg-surface rounded-xl border border-border p-6 shadow-minimal space-y-5">
+                  {/* Top Bar with Step Controls */}
+                  <div className="flex items-center justify-between border-b border-borderlight pb-3">
+                    <span className="font-mono text-[11px] uppercase tracking-wider text-ink-muted">
+                      Bedah Tafshil Lafaz
+                    </span>
+
+                    <div className="flex items-center gap-1 font-mono text-xs text-ink-muted">
+                      <button
+                        type="button"
+                        onClick={handlePrevWord}
+                        disabled={currentWordIndex <= 0}
+                        className="p-1 rounded hover:bg-subtle disabled:opacity-20 transition"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <span>
+                        {currentWordIndex + 1} / {allWords.length}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleNextWord}
+                        disabled={currentWordIndex >= allWords.length - 1}
+                        className="p-1 rounded hover:bg-subtle disabled:opacity-20 transition"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Word Big Display */}
+                  <div className="text-center py-3 bg-subtle/40 rounded-lg">
+                    <span className="font-arabic text-4xl text-ink font-bold leading-relaxed block">
+                      {selectedWord.ar}
+                    </span>
+                    <div className="mt-2">
+                      <NahwuBadge nahwuText={selectedWord.nahwu} />
+                    </div>
+                  </div>
+
+                  {/* Meaning Field */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-mono uppercase tracking-wider text-ink-muted block">
+                      Terjemah Arti
+                    </label>
+                    <input
+                      type="text"
+                      value={selectedWord.meaning_id || ''}
+                      onChange={(e) => handleEditWord(selectedWord.id, 'meaning_id', e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-border bg-canvas/40 text-xs focus:border-ink focus:outline-none transition font-medium"
+                    />
+                  </div>
+
+                  {/* Nahwu Syntax Explanation */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-mono uppercase tracking-wider text-ink-muted block">
+                      I&apos;rab &amp; Kedudukan Nahwu
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={selectedWord.nahwu || ''}
+                      onChange={(e) => handleEditWord(selectedWord.id, 'nahwu', e.target.value)}
+                      className="w-full p-2.5 rounded-lg border border-border bg-canvas/40 text-xs leading-relaxed focus:border-ink focus:outline-none transition resize-y"
+                    />
+                  </div>
+
+                  {/* Shorof Grid */}
+                  <div className="p-3.5 rounded-lg bg-subtle/60 border border-borderlight grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <span className="text-ink-muted block text-[10px] uppercase font-mono mb-0.5">Wazan</span>
+                      <span className="font-arabic text-base text-ink font-semibold">
+                        {selectedWord.sharf_wazan || '-'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-ink-muted block text-[10px] uppercase font-mono mb-0.5">Akar Kata (Root)</span>
+                      <span className="font-mono text-xs font-semibold text-ink">
+                        {selectedWord.sharf_root || '-'}
+                      </span>
+                    </div>
+                    {selectedWord.sharf_tashrif && (
+                      <div className="col-span-2 pt-2 border-t border-borderlight">
+                        <span className="text-ink-muted block text-[10px] uppercase font-mono mb-0.5">Bentuk Tashrif</span>
+                        <span className="text-xs text-ink-secondary">{selectedWord.sharf_tashrif}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action Footer */}
+                  <div className="flex items-center justify-between pt-2 border-t border-borderlight text-xs">
+                    <button
+                      type="button"
+                      onClick={() => handleToggleChecked(selectedWord.id, selectedWord.checked)}
+                      className="flex items-center gap-1.5 font-medium transition text-ink-secondary hover:text-ink"
+                    >
+                      {selectedWord.checked ? (
+                        <>
+                          <CheckCircle2 className="w-4 h-4 text-emerald-800" />
+                          <span>Status: Ditashih</span>
+                        </>
+                      ) : (
+                        <>
+                          <AlertTriangle className="w-4 h-4 text-amber-700" />
+                          <span>Tandai Selesai Tashih</span>
+                        </>
+                      )}
+                    </button>
+
+                    <span className="text-[11px] font-mono text-ink-muted">
+                      Posisi #{selectedWord.position}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-8 rounded-xl border border-dashed border-border text-center text-xs text-ink-muted space-y-2">
+                  <p>Ketuk salah satu kata Arab di sebelah kiri untuk melihat rincian I&apos;rab dan Wazan Shorof.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : displayMode === 'table' ? (
+          /* Mode Table: Full Width Comprehensive Study Table */
+          <div className="bg-surface rounded-xl border border-border shadow-minimal overflow-x-auto">
+            <table className="w-full text-xs border-collapse">
+              <thead>
+                <tr className="bg-subtle/80 text-ink-secondary border-b border-border font-mono text-[11px] uppercase tracking-wider">
+                  <th className="p-3 text-right font-arabic text-sm w-[15%] sticky right-0 bg-subtle z-10">Lafaz</th>
+                  <th className="p-3 text-left w-[20%]">Terjemah Arti</th>
+                  <th className="p-3 text-left w-[35%]">I&apos;rab &amp; Kedudukan Nahwu</th>
+                  <th className="p-3 text-left w-[20%]">Morfologi Shorof</th>
+                  <th className="p-3 text-center w-[10%]">Tashih</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-borderlight">
+                {filteredWords.map((w: any) => (
+                  <tr key={w.id} className="hover:bg-subtle/40 transition">
+                    <td className="p-3 text-right font-arabic text-2xl font-bold text-ink sticky right-0 bg-surface z-10 border-l border-borderlight">
+                      {w.ar}
+                    </td>
+                    <td className="p-3">
+                      <input
+                        type="text"
+                        value={w.meaning_id || ''}
+                        onChange={(e) => handleEditWord(w.id, 'meaning_id', e.target.value)}
+                        className="w-full bg-transparent border-b border-transparent hover:border-border focus:border-ink focus:outline-none py-1 text-xs"
+                      />
+                    </td>
+                    <td className="p-3 space-y-1">
+                      <NahwuBadge nahwuText={w.nahwu} />
+                      <textarea
+                        rows={2}
+                        value={w.nahwu || ''}
+                        onChange={(e) => handleEditWord(w.id, 'nahwu', e.target.value)}
+                        className="w-full bg-transparent border border-transparent hover:border-border focus:border-ink focus:outline-none p-1 rounded text-xs resize-y"
+                      />
+                    </td>
+                    <td className="p-3 text-xs text-ink-muted space-y-0.5">
+                      {w.sharf_wazan && (
+                        <div>
+                          <span className="font-mono text-ink-muted">Wazan: </span>
+                          <span className="font-arabic text-sm text-ink font-semibold">{w.sharf_wazan}</span>
+                        </div>
+                      )}
+                      {w.sharf_root && (
+                        <div>
+                          <span className="font-mono text-ink-muted">Akar: </span>
+                          <span className="font-mono text-ink">{w.sharf_root}</span>
+                        </div>
+                      )}
+                    </td>
+                    <td className="p-3 text-center">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleChecked(w.id, w.checked)}
+                        className="p-1 rounded text-ink-muted hover:text-ink transition"
+                      >
+                        {w.checked ? (
+                          <CheckCircle2 className="w-4 h-4 text-emerald-800" />
+                        ) : (
+                          <AlertTriangle className="w-4 h-4 text-amber-700" />
+                        )}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          /* Mode Cards: Clean Grid of Cards */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredWords.map((w: any) => (
+              <div
+                key={w.id}
+                onClick={() => setSelectedWord(w)}
+                className="p-4 rounded-xl bg-surface border border-border hover:border-ink/40 transition shadow-minimal flex flex-col justify-between space-y-3 cursor-pointer"
+              >
+                <div className="flex items-center justify-between border-b border-borderlight pb-2">
+                  <span className="font-arabic text-3xl font-bold text-ink">{w.ar}</span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleToggleChecked(w.id, w.checked);
+                    }}
+                    className="p-1 text-ink-muted hover:text-ink"
+                  >
+                    {w.checked ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-800" />
+                    ) : (
+                      <AlertTriangle className="w-4 h-4 text-amber-700" />
+                    )}
+                  </button>
+                </div>
+
+                <div className="space-y-1">
+                  <span className="text-xs font-semibold text-ink block">{w.meaning_id || '-'}</span>
+                  <NahwuBadge nahwuText={w.nahwu} />
+                  <p className="text-xs text-ink-tertiary line-clamp-2 leading-relaxed">{w.nahwu}</p>
+                </div>
+
+                {(w.sharf_wazan || w.sharf_root) && (
+                  <div className="pt-2 border-t border-borderlight flex items-center justify-between text-xs text-ink-muted font-mono">
+                    <span>{w.sharf_wazan}</span>
+                    <span>[{w.sharf_root}]</span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </main>
 
-      {/* Minimalist Word Inspector Drawer (Mobile & Desktop) */}
+      {/* Mobile Word Inspector Drawer (Slide-over for HP Viewport) */}
       {selectedWord && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-5 bg-ink/30 backdrop-blur-xs animate-in fade-in">
+        <div className="lg:hidden fixed inset-0 z-50 flex items-end justify-center p-0 bg-ink/40 backdrop-blur-xs animate-in fade-in">
           <div
-            className="w-full sm:max-w-md bg-surface rounded-t-3xl sm:rounded-2xl p-6 border border-border shadow-drawer max-h-[80vh] overflow-y-auto space-y-5"
+            className="w-full bg-surface rounded-t-2xl p-5 border-t border-border shadow-drawer max-h-[82vh] overflow-y-auto space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Top Bar with Step Arrows */}
-            <div className="flex items-center justify-between border-b border-borderlight pb-3">
-              <div className="flex items-center gap-1 text-xs text-ink-tertiary font-mono">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-borderlight pb-2.5">
+              <div className="flex items-center gap-2 font-mono text-xs text-ink-muted">
                 <button
                   type="button"
                   onClick={handlePrevWord}
                   disabled={currentWordIndex <= 0}
-                  className="p-1 rounded hover:bg-subtle disabled:opacity-20 transition"
+                  className="p-1 rounded hover:bg-subtle disabled:opacity-20"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
-                <span>
-                  {currentWordIndex + 1} / {allWords.length}
-                </span>
+                <span>{currentWordIndex + 1} / {allWords.length}</span>
                 <button
                   type="button"
                   onClick={handleNextWord}
                   disabled={currentWordIndex >= allWords.length - 1}
-                  className="p-1 rounded hover:bg-subtle disabled:opacity-20 transition"
+                  className="p-1 rounded hover:bg-subtle disabled:opacity-20"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -488,72 +845,62 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
               <button
                 type="button"
                 onClick={() => setSelectedWord(null)}
-                className="p-1 rounded text-ink-muted hover:text-ink transition"
+                className="p-1 text-ink-muted hover:text-ink"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Big Arabic Display */}
-            <div className="text-center py-2">
+            {/* Word Centerpiece */}
+            <div className="text-center py-2 bg-subtle/50 rounded-lg">
               <span className="font-arabic text-4xl text-ink font-bold leading-relaxed block">
                 {selectedWord.ar}
               </span>
-              <div className="mt-2">
+              <div className="mt-1">
                 <NahwuBadge nahwuText={selectedWord.nahwu} />
               </div>
             </div>
 
-            {/* Editable Meaning */}
-            <div className="space-y-1">
-              <label className="text-[11px] font-mono uppercase tracking-wider text-ink-muted block">
-                Arti Kata
-              </label>
-              <input
-                type="text"
-                value={selectedWord.meaning_id || ''}
-                onChange={(e) => handleEditWord(selectedWord.id, 'meaning_id', e.target.value)}
-                className="w-full p-2.5 rounded-lg border border-borderlight bg-subtle/50 text-sm focus:border-ink focus:outline-none transition"
-              />
-            </div>
-
-            {/* Editable Nahwu */}
-            <div className="space-y-1">
-              <label className="text-[11px] font-mono uppercase tracking-wider text-ink-muted block">
-                I&apos;rab Nahwu
-              </label>
-              <textarea
-                rows={2}
-                value={selectedWord.nahwu || ''}
-                onChange={(e) => handleEditWord(selectedWord.id, 'nahwu', e.target.value)}
-                className="w-full p-2.5 rounded-lg border border-borderlight bg-subtle/50 text-xs leading-relaxed focus:border-ink focus:outline-none transition"
-              />
-            </div>
-
-            {/* Shorof Info */}
-            <div className="p-3 rounded-lg bg-subtle/70 text-xs grid grid-cols-2 gap-2 text-ink-secondary">
+            {/* Fields */}
+            <div className="space-y-3">
               <div>
-                <span className="text-ink-muted block text-[10px] uppercase font-mono">Wazan</span>
-                <span className="font-arabic text-sm text-ink">{selectedWord.sharf_wazan || '-'}</span>
+                <label className="text-[10px] font-mono uppercase text-ink-muted block mb-1">Arti Kata</label>
+                <input
+                  type="text"
+                  value={selectedWord.meaning_id || ''}
+                  onChange={(e) => handleEditWord(selectedWord.id, 'meaning_id', e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-border bg-canvas/40 text-xs focus:border-ink focus:outline-none"
+                />
               </div>
+
               <div>
-                <span className="text-ink-muted block text-[10px] uppercase font-mono">Akar</span>
-                <span className="font-mono text-xs text-ink">{selectedWord.sharf_root || '-'}</span>
+                <label className="text-[10px] font-mono uppercase text-ink-muted block mb-1">I&apos;rab Nahwu</label>
+                <textarea
+                  rows={2}
+                  value={selectedWord.nahwu || ''}
+                  onChange={(e) => handleEditWord(selectedWord.id, 'nahwu', e.target.value)}
+                  className="w-full p-2.5 rounded-lg border border-border bg-canvas/40 text-xs leading-relaxed focus:border-ink focus:outline-none"
+                />
               </div>
-              {selectedWord.sharf_tashrif && (
-                <div className="col-span-2 pt-2 border-t border-borderlight">
-                  <span className="text-ink-muted block text-[10px] uppercase font-mono">Tashrif</span>
-                  <span>{selectedWord.sharf_tashrif}</span>
+
+              <div className="p-3 rounded-lg bg-subtle/70 text-xs grid grid-cols-2 gap-2 text-ink-secondary">
+                <div>
+                  <span className="text-ink-muted block text-[10px] uppercase font-mono">Wazan</span>
+                  <span className="font-arabic text-sm text-ink font-semibold">{selectedWord.sharf_wazan || '-'}</span>
                 </div>
-              )}
+                <div>
+                  <span className="text-ink-muted block text-[10px] uppercase font-mono">Akar</span>
+                  <span className="font-mono text-xs text-ink font-semibold">{selectedWord.sharf_root || '-'}</span>
+                </div>
+              </div>
             </div>
 
             {/* Action Bottom */}
-            <div className="flex items-center justify-between pt-1">
+            <div className="flex items-center justify-between pt-2">
               <button
                 type="button"
                 onClick={() => handleToggleChecked(selectedWord.id, selectedWord.checked)}
-                className="text-xs font-medium text-ink-secondary hover:text-ink flex items-center gap-1.5 transition"
+                className="text-xs font-medium text-ink-secondary flex items-center gap-1.5"
               >
                 {selectedWord.checked ? (
                   <>
@@ -563,7 +910,7 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
                 ) : (
                   <>
                     <AlertTriangle className="w-4 h-4 text-amber-700" />
-                    <span>Tandai Selesai</span>
+                    <span>Tandai Ditashih</span>
                   </>
                 )}
               </button>
@@ -571,30 +918,30 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
               <button
                 type="button"
                 onClick={() => setSelectedWord(null)}
-                className="px-4 py-2 rounded-full bg-ink text-surface text-xs font-medium hover:bg-stone-800 transition"
+                className="px-4 py-1.5 rounded-full bg-ink text-surface text-xs font-medium"
               >
-                Selesai
+                Tutup
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Floating Bottom Bar for Mobile (Clean, minimal action sheet) */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-canvas/95 backdrop-blur-md border-t border-borderlight p-3 px-5 flex items-center justify-between shadow-drawer">
+      {/* Floating Action Bar for Mobile */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-md border-t border-border p-3 px-4 flex items-center justify-between shadow-drawer">
         <Link
           href="/library"
-          className="p-2 rounded-full border border-border text-xs text-ink-secondary"
+          className="p-2 rounded-lg border border-border text-xs text-ink-secondary"
         >
           <ArrowLeft className="w-4 h-4" />
         </Link>
 
-        <div>
+        <div className="flex items-center gap-2">
           {downloadUrl ? (
             <a
               href={downloadUrl}
               download
-              className="px-5 py-2 rounded-full bg-ink text-surface text-xs font-medium flex items-center gap-1.5 shadow-minimal"
+              className="px-4 py-2 rounded-lg bg-ink text-surface text-xs font-medium flex items-center gap-1.5 shadow-minimal"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Unduh PDF</span>
@@ -604,7 +951,7 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
               type="button"
               onClick={handleExportPdf}
               disabled={isProcessing || exporting}
-              className="px-5 py-2 rounded-full bg-cedar text-surface text-xs font-medium flex items-center gap-1.5 disabled:opacity-40 shadow-minimal"
+              className="px-4 py-2 rounded-lg bg-cedar text-surface text-xs font-medium flex items-center gap-1.5 disabled:opacity-40 shadow-minimal"
             >
               <FileText className="w-3.5 h-3.5" />
               <span>{exporting ? 'Merender...' : 'Ekspor PDF'}</span>
