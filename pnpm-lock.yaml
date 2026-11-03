@@ -90,6 +90,9 @@ importers:
       '@pinterbacaarab/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      jsonrepair:
+        specifier: ^3.15.0
+        version: 3.15.0
       playwright:
         specifier: ^1.64.1
         version: 1.64.1
@@ -1195,6 +1198,10 @@ packages:
 
   js-tokens@9.0.1:
     resolution: {integrity: sha512-mxa9E9ITFOt0ban3j6L5MpjwegGz6lBQmM1IJkWeBZGcMxto50+eWdjC/52xDbS2vy0k7vIMK0Fe2wfL9OQSpQ==}
+
+  jsonrepair@3.15.0:
+    resolution: {integrity: sha512-wy8OTjwsJwQRnQJkKnMJJ9vcytRdBPAgIF/Hy6+s1dAj42BHMKiyL8JzEieIl3JY7idt8eyHwBWTO8mh/+mtwA==}
+    hasBin: true
 
   lilconfig@3.1.4:
     resolution: {integrity: sha512-zJZyBmQhArDRefuWTypZxwDpFDIYmrj8ypSBvwGD5P13Y95s6DjzKgu4DVdGbeQa5PDEsAOCAPNk4X+QOR006w==}
@@ -2488,6 +2495,8 @@ snapshots:
   joycon@3.1.1: {}
 
   js-tokens@9.0.1: {}
+
+  jsonrepair@3.15.0: {}
 
   lilconfig@3.1.4: {}
 

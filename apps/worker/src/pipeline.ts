@@ -142,9 +142,9 @@ export async function processDocumentJob(
     throw new Error(`Document missing for job: ${jobId}`);
   }
 
-  // 2. Normalisasi & segmentasi teks sumber (85 kata per segmen agar cepat & presisi)
+  // 2. Normalisasi & segmentasi teks sumber (45 kata per segmen agar cepat, presisi & anti-truncate)
   const sourceText = document.source_text;
-  const segments = chunkSegments(sourceText, 85);
+  const segments = chunkSegments(sourceText, 45);
 
   await supabase
     .from('jobs')

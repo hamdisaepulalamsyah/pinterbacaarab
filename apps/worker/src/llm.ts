@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { jsonrepair } from 'jsonrepair';
 import {
   SegmentOutput,
   SegmentOutputSchema,
@@ -46,9 +47,30 @@ export function extractJsonFromResponse(raw: string): string {
   const firstBrace = cleaned.indexOf('{');
   const lastBrace = cleaned.lastIndexOf('}');
   if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-    return cleaned.slice(firstBrace, lastBrace + 1);
+    const candidate = cleaned.slice(firstBrace, lastBrace + 1);
+    try {
+      JSON.parse(candidate);
+      return candidate;
+    } catch {
+      try {
+        return jsonrepair(candidate);
+      } catch {
+        return candidate;
+      }
+    }
   }
-  return cleaned;
+  if (firstBrace !== -1) {
+    try {
+      return jsonrepair(cleaned.slice(firstBrace));
+    } catch {
+      // Fallback
+    }
+  }
+  try {
+    return jsonrepair(cleaned);
+  } catch {
+    return cleaned;
+  }
 }
 
 /**
@@ -93,7 +115,7 @@ export async function callLlmChat(
           stream: false,
           response_format: { type: 'json_object' },
           reasoning_effort: 'low',
-          max_tokens: 8192,
+          max_tokens: 16384,
         }),
         signal: controller.signal,
       });
