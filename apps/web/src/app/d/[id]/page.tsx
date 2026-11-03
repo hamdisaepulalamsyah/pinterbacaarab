@@ -3,7 +3,7 @@
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { stripHarakat } from '@pinterbacaarab/shared';
+import { stripHarakat } from '@/lib/arabic';
 import {
   ArrowLeft,
   Download,
@@ -345,73 +345,108 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
                   {copiedLink ? <Check className="w-4 h-4 text-emerald-800" /> : <Share2 className="w-4 h-4" />}
                 </button>
 
-                {downloadUrl && (
-                  <a
-                    href={downloadUrl}
-                    download
-                    className="px-3.5 py-2 rounded-lg bg-emerald-800 hover:bg-emerald-900 text-surface text-xs font-medium flex items-center gap-1.5 transition shadow-minimal"
+                {downloadUrl ? (
+                  <div className="flex items-center gap-1.5">
+                    <a
+                      href={downloadUrl}
+                      download
+                      className="px-3.5 py-2 rounded-lg bg-emerald-800 hover:bg-emerald-900 text-surface text-xs font-medium flex items-center gap-1.5 transition shadow-minimal"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Unduh PDF ({showHarakat ? 'Bersyakal' : 'Gundul'})</span>
+                    </a>
+                    <button
+                      type="button"
+                      onClick={handleExportPdf}
+                      disabled={isProcessing || exporting}
+                      className="p-2 rounded-lg border border-border text-ink-secondary hover:text-ink hover:bg-subtle transition"
+                      title="Cetak ulang PDF dengan mode saat ini"
+                    >
+                      {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleExportPdf}
+                    disabled={isProcessing || exporting}
+                    className="px-3.5 py-2 rounded-lg bg-ink hover:bg-stone-800 text-surface text-xs font-medium flex items-center gap-1.5 disabled:opacity-40 transition shadow-minimal"
                   >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>Unduh PDF</span>
-                  </a>
+                    {exporting ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Mencetak PDF...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FileText className="w-3.5 h-3.5" />
+                        <span>Cetak PDF ({showHarakat ? 'Bersyakal' : 'Gundul'})</span>
+                      </>
+                    )}
+                  </button>
                 )}
-
-                <button
-                  type="button"
-                  onClick={handleExportPdf}
-                  disabled={isProcessing || exporting}
-                  className="px-3.5 py-2 rounded-lg bg-ink hover:bg-stone-800 text-surface text-xs font-medium flex items-center gap-1.5 disabled:opacity-40 transition shadow-minimal"
-                  title="Ekspor PDF A4 siap cetak dengan pengaturan syakal saat ini"
-                >
-                  {exporting ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Merender...</span>
-                    </>
-                  ) : (
-                    <>
-                      <FileText className="w-3.5 h-3.5" />
-                      <span>{downloadUrl ? 'Ekspor Ulang' : 'Ekspor PDF'}</span>
-                    </>
-                  )}
-                </button>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Sub-toolbar: Search & View Mode Toggle */}
+      {/* Sub-toolbar: Search, Mode Syakal & View Mode Toggle */}
       <section className="border-b border-border bg-subtle/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
-          {/* Document Scope Indicator */}
-          <div className="flex items-center gap-2">
-            <span className="font-serif italic text-xs text-ink-secondary">
-              Naskah Lengkap
-            </span>
-            <span className="text-ink-muted text-[10px]">•</span>
-            <span className="font-mono text-[11px] text-ink-muted">
-              {filteredWords.length} dari {allWords.length} lafaz
-            </span>
+          {/* Document Scope Indicator & Mode Syakal Switch */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="font-serif italic text-xs text-ink-secondary">
+                Naskah Lengkap
+              </span>
+              <span className="text-ink-muted text-[10px]">•</span>
+              <span className="font-mono text-[11px] text-ink-muted">
+                {filteredWords.length} dari {allWords.length} lafaz
+              </span>
+            </div>
+
+            <div className="h-4 w-px bg-border"></div>
+
+            {/* Mode Syakal: Bersyakal vs Gundul Segmented Switch */}
+            <div className="inline-flex rounded-lg border border-border bg-surface p-0.5 text-xs shrink-0 shadow-minimal">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowHarakat(true);
+                  setDownloadUrl(null);
+                }}
+                className={`px-2.5 py-1 rounded-md font-medium transition flex items-center gap-1.5 ${
+                  showHarakat
+                    ? 'bg-ink text-surface font-semibold shadow-minimal'
+                    : 'text-ink-secondary hover:text-ink'
+                }`}
+                title="Tampilkan teks dengan harakat lengkap"
+              >
+                <span className="font-arabic text-sm leading-none">َـ</span>
+                <span>Bersyakal</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowHarakat(false);
+                  setDownloadUrl(null);
+                }}
+                className={`px-2.5 py-1 rounded-md font-medium transition flex items-center gap-1.5 ${
+                  !showHarakat
+                    ? 'bg-amber-800 text-surface font-semibold shadow-minimal'
+                    : 'text-ink-secondary hover:text-ink'
+                }`}
+                title="Sembunyikan harakat (Teks Arab Gundul)"
+              >
+                <span className="font-arabic text-sm leading-none">ـ</span>
+                <span>Gundul</span>
+              </button>
+            </div>
           </div>
 
-          {/* Right Toolbar: View Mode, Harakat Toggle & Search */}
+          {/* Right Toolbar: View Mode & Search */}
           <div className="flex items-center gap-2.5">
-            {/* Toggle Syakal / Harakat */}
-            <button
-              type="button"
-              onClick={() => setShowHarakat(!showHarakat)}
-              className={`px-2.5 py-1 rounded-md border text-xs font-medium transition flex items-center gap-1.5 ${
-                showHarakat
-                  ? 'bg-surface border-border text-ink hover:border-ink/60'
-                  : 'bg-amber-100 text-amber-900 border-amber-300 font-semibold'
-              }`}
-              title={showHarakat ? 'Sembunyikan Harakat (Teks Gundul)' : 'Tampilkan Harakat (Teks Bersyakal)'}
-            >
-              <span className="font-arabic text-sm leading-none">{showHarakat ? 'َـ' : 'ـ'}</span>
-              <span>{showHarakat ? 'Harakat: Ada' : 'Harakat: Gundul'}</span>
-            </button>
-
             {/* Search Input */}
             <div className="relative">
               <Search className="w-3 h-3 text-ink-muted absolute left-2.5 top-1/2 -translate-y-1/2" />
