@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Sparkles, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Sparkles, AlertCircle, Upload, FileText, Loader2, X } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { countWords } from '@pinterbacaarab/shared';
 
@@ -15,6 +15,16 @@ export default function NewDocumentPage() {
   const [detail, setDetail] = useState<'full' | 'brief'>('full');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // State untuk unggah dokumen (PDF, TXT, DOCX)
+  const [uploading, setUploading] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<{
+    name: string;
+    wordCount: number;
+    method: 'direct' | 'ocr';
+  } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const wordCount = countWords(sourceText);
 
@@ -44,6 +54,50 @@ export default function NewDocumentPage() {
     setTitle(s.title);
     setSourceName(s.source);
     setSourceText(s.text);
+    setUploadedFile(null);
+  };
+
+  const handleFileUpload = async (file: File) => {
+    setError(null);
+    const ext = file.name.toLowerCase().split('.').pop() || '';
+    if (!['pdf', 'txt', 'docx', 'doc'].includes(ext)) {
+      setError('Format file tidak didukung. Mohon gunakan PDF, TXT, atau DOCX.');
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      setError('Ukuran file maksimal 15MB.');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/documents/extract', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Gagal mengekstrak dokumen.');
+      }
+
+      setSourceText(data.text);
+      if (!title.trim() && data.suggestedTitle) {
+        setTitle(data.suggestedTitle);
+      }
+      setUploadedFile({
+        name: file.name,
+        wordCount: data.wordCount,
+        method: data.method,
+      });
+    } catch (err: any) {
+      setError(err.message || 'Terjadi kesalahan saat mengekstrak dokumen.');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -160,6 +214,96 @@ export default function NewDocumentPage() {
                   className="w-full px-3.5 py-2.5 rounded-lg border border-border bg-canvas/40 text-sm focus:border-ink focus:outline-none transition"
                 />
               </div>
+            </div>
+
+            {/* Document Upload Area */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-[11px] font-mono uppercase tracking-wider text-ink-muted block">
+                  Unggah Dokumen (PDF / TXT / DOCX)
+                </label>
+                <span className="text-[11px] font-mono text-ink-muted">Maks. 15MB</span>
+              </div>
+
+              {uploadedFile ? (
+                <div className="flex items-center justify-between p-3.5 rounded-xl bg-subtle/80 border border-border text-xs">
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <div className="w-8 h-8 rounded-lg bg-surface flex items-center justify-center border border-borderlight shrink-0 text-cedar">
+                      <FileText className="w-4 h-4" />
+                    </div>
+                    <div className="truncate">
+                      <p className="font-medium text-ink truncate">{uploadedFile.name}</p>
+                      <p className="text-[11px] text-ink-muted">
+                        {uploadedFile.wordCount.toLocaleString()} kata terekstrak{' '}
+                        {uploadedFile.method === 'ocr' ? '• via OCR Vision' : '• Teks Digital'}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUploadedFile(null);
+                      if (fileInputRef.current) fileInputRef.current.value = '';
+                    }}
+                    className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-canvas transition"
+                    title="Ganti file"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDragging(true);
+                  }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDragging(false);
+                    const file = e.dataTransfer.files?.[0];
+                    if (file) handleFileUpload(file);
+                  }}
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`p-4 sm:p-5 rounded-xl border border-dashed text-center cursor-pointer transition-all ${
+                    isDragging
+                      ? 'border-ink bg-subtle/80 scale-[1.01]'
+                      : 'border-border bg-canvas/30 hover:border-ink/40 hover:bg-canvas/60'
+                  }`}
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,.txt,.docx,.doc"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleFileUpload(file);
+                    }}
+                  />
+                  {uploading ? (
+                    <div className="flex flex-col items-center justify-center gap-2 py-2">
+                      <Loader2 className="w-5 h-5 text-cedar animate-spin" />
+                      <span className="text-xs font-medium text-ink">
+                        Mengekstrak teks Arab dari dokumen...
+                      </span>
+                      <span className="text-[10px] text-ink-muted">Mohon tunggu beberapa saat</span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center gap-1.5 py-1">
+                      <div className="w-8 h-8 rounded-full bg-subtle flex items-center justify-center text-ink-secondary mb-0.5">
+                        <Upload className="w-4 h-4" />
+                      </div>
+                      <div className="text-xs text-ink font-medium">
+                        Klik untuk unggah file atau tarik &amp; lepas ke sini
+                      </div>
+                      <p className="text-[11px] text-ink-muted">
+                        Mendukung PDF kitab/tulisan, file teks (.txt), dan Word (.docx)
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Arabic Textarea */}
