@@ -63,10 +63,10 @@ export default function LibraryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-canvas text-ink pb-24 sm:pb-20">
+    <div className="min-h-screen bg-canvas bg-ambient-fluid text-ink pb-24 sm:pb-20">
       <Navbar />
 
-      <main className="max-w-3xl mx-auto px-5 py-10 sm:py-14">
+      <main className="max-w-3xl mx-auto px-5 py-10 sm:py-14 animate-fadeSlideUp">
         {/* Header */}
         <div className="flex items-baseline justify-between mb-8">
           <div>
@@ -80,7 +80,7 @@ export default function LibraryPage() {
 
           <Link
             href="/new"
-            className="px-4 py-1.5 rounded-full bg-ink text-surface text-xs font-medium hover:bg-stone-800 transition flex items-center gap-1.5 shadow-minimal"
+            className="px-4 py-1.5 rounded-full bg-ink text-surface text-xs font-medium hover:bg-stone-800 transition-all duration-300 ease-fluid flex items-center gap-1.5 shadow-minimal hover:shadow-float active:scale-95"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Kajian Baru</span>
@@ -89,20 +89,35 @@ export default function LibraryPage() {
 
         {/* Minimal Search Bar */}
         <div className="mb-8 relative">
-          <Search className="w-4 h-4 text-ink-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-ink-muted absolute left-3.5 top-1/2 -translate-y-1/2 transition-colors duration-200" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Cari naskah kajian..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-surface text-xs sm:text-sm focus:border-ink focus:outline-none transition shadow-minimal"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-surface text-xs sm:text-sm focus:border-cedar focus:shadow-glow focus:outline-none transition-all duration-300 ease-fluid shadow-minimal"
           />
         </div>
 
         {/* List */}
         {loading ? (
-          <div className="py-20 text-center text-xs text-ink-tertiary font-serif italic">
-            Membuka arsip...
+          <div className="space-y-4 py-4">
+            {[1, 2, 3].map((idx) => (
+              <div
+                key={idx}
+                className="p-5 rounded-2xl bg-surface border border-borderlight space-y-3.5 animate-pulse shadow-minimal"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="h-4 w-44 rounded-md skeleton-shimmer"></div>
+                  <div className="h-3 w-16 rounded skeleton-shimmer"></div>
+                </div>
+                <div className="h-6 w-3/4 rounded-md skeleton-shimmer ml-auto"></div>
+                <div className="flex items-center justify-between pt-1">
+                  <div className="h-3 w-28 rounded skeleton-shimmer"></div>
+                  <div className="h-3 w-20 rounded skeleton-shimmer"></div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : filteredDocs.length === 0 ? (
           <div className="py-20 text-center space-y-3">
@@ -119,26 +134,26 @@ export default function LibraryPage() {
             )}
           </div>
         ) : (
-          <div className="divide-y divide-borderlight border-y border-borderlight">
+          <div className="space-y-3">
             {filteredDocs.map((d) => (
               <Link
                 key={d.id}
                 href={`/d/${d.id}`}
-                className="py-5 px-2 hover:bg-subtle/50 transition flex flex-col sm:flex-row sm:items-baseline justify-between gap-3 group"
+                className="p-5 rounded-2xl bg-surface border border-borderlight hover:border-cedar/30 hover:shadow-float transition-all duration-300 ease-fluid flex flex-col sm:flex-row sm:items-baseline justify-between gap-4 group cursor-pointer"
               >
-                <div className="space-y-1 flex-1">
+                <div className="space-y-1.5 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-serif text-lg text-ink font-normal group-hover:text-cedar transition line-clamp-1">
+                    <span className="font-serif text-lg text-ink font-normal group-hover:text-cedar transition-colors duration-200 line-clamp-1">
                       {d.title}
                     </span>
                     {d.status === 'needs_review' && (
-                      <span className="text-[10px] text-amber-800 bg-amber-50 px-2 py-0.2 rounded font-mono">
+                      <span className="text-[10px] text-amber-800 bg-amber-50 px-2 py-0.5 rounded font-mono">
                         Tashih
                       </span>
                     )}
                   </div>
 
-                  <p className="font-arabic text-xl text-ink-secondary text-right line-clamp-1 py-1">
+                  <p className="font-arabic text-xl text-ink-secondary text-right line-clamp-1 py-1 group-hover:text-ink transition-colors duration-200">
                     {d.source_text}
                   </p>
                 </div>
@@ -151,7 +166,7 @@ export default function LibraryPage() {
                     type="button"
                     onClick={(e) => handleDelete(d.id, d.title, e)}
                     disabled={deletingId === d.id}
-                    className="p-1.5 rounded-md text-ink-muted hover:text-red-700 hover:bg-red-50 transition ml-1"
+                    className="p-1.5 rounded-lg text-ink-muted hover:text-red-700 hover:bg-red-50 transition-all duration-200 ease-fluid hover:scale-110 active:scale-95 ml-1"
                     title="Hapus naskah kajian"
                   >
                     {deletingId === d.id ? (
@@ -160,7 +175,7 @@ export default function LibraryPage() {
                       <Trash2 className="w-3.5 h-3.5" />
                     )}
                   </button>
-                  <ArrowRight className="w-3.5 h-3.5 text-ink-muted group-hover:translate-x-0.5 transition-transform" />
+                  <ArrowRight className="w-3.5 h-3.5 text-ink-muted group-hover:translate-x-1 group-hover:text-cedar transition-all duration-300 ease-fluid" />
                 </div>
               </Link>
             ))}

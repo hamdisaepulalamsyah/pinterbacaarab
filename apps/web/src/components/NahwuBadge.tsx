@@ -32,7 +32,7 @@ export default function NahwuBadge({ nahwuText, className = '' }: NahwuBadgeProp
 
   return (
     <span
-      className={`inline-block px-2 py-0.5 rounded text-[10px] font-mono tracking-wider font-medium ${pillClass} ${className}`}
+      className={`inline-block px-2 py-0.5 rounded text-[10px] font-mono tracking-wider font-medium transition-all duration-200 ease-fluid hover:scale-105 select-none ${pillClass} ${className}`}
     >
       {label}
     </span>

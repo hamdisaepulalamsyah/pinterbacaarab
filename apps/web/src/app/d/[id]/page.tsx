@@ -251,11 +251,40 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-canvas flex flex-col">
+      <div className="min-h-screen bg-canvas bg-ambient-fluid flex flex-col">
         <Navbar />
-        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-          <span className="font-arabic text-3xl text-ink font-normal mb-2 opacity-50">ن</span>
-          <p className="text-xs font-mono text-ink-muted">Memuat lembaran kajian...</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex-1 w-full space-y-6 animate-pulse">
+          {/* Header Skeleton */}
+          <div className="p-6 rounded-2xl bg-surface border border-borderlight flex flex-col sm:flex-row justify-between gap-4 shadow-minimal">
+            <div className="space-y-2">
+              <div className="h-3 w-32 rounded skeleton-shimmer"></div>
+              <div className="h-6 w-64 rounded-md skeleton-shimmer"></div>
+            </div>
+            <div className="flex gap-4">
+              <div className="h-10 w-24 rounded-lg skeleton-shimmer"></div>
+              <div className="h-10 w-28 rounded-lg skeleton-shimmer"></div>
+            </div>
+          </div>
+          {/* Main Grid Skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div className="lg:col-span-7 p-8 rounded-2xl bg-surface border border-borderlight space-y-4 shadow-minimal">
+              <div className="flex justify-between border-b border-borderlight pb-3">
+                <div className="h-3 w-28 rounded skeleton-shimmer"></div>
+                <div className="h-3 w-16 rounded skeleton-shimmer"></div>
+              </div>
+              <div className="space-y-3 pt-4">
+                <div className="h-8 w-full rounded skeleton-shimmer"></div>
+                <div className="h-8 w-5/6 rounded skeleton-shimmer ml-auto"></div>
+                <div className="h-8 w-4/6 rounded skeleton-shimmer ml-auto"></div>
+              </div>
+            </div>
+            <div className="lg:col-span-5 p-6 rounded-2xl bg-surface border border-borderlight space-y-5 shadow-minimal">
+              <div className="h-4 w-36 rounded skeleton-shimmer"></div>
+              <div className="h-20 w-full rounded-xl skeleton-shimmer"></div>
+              <div className="h-10 w-full rounded-lg skeleton-shimmer"></div>
+              <div className="h-24 w-full rounded-lg skeleton-shimmer"></div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -263,13 +292,13 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
 
   if (!doc) {
     return (
-      <div className="min-h-screen bg-canvas flex flex-col">
+      <div className="min-h-screen bg-canvas bg-ambient-fluid flex flex-col">
         <Navbar />
-        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-sm mx-auto">
+        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-sm mx-auto animate-fadeSlideUp">
           <p className="font-serif italic text-lg text-ink mb-2">Dokumen tidak ditemukan</p>
           <Link
             href="/library"
-            className="text-xs text-ink-secondary underline hover:text-ink transition"
+            className="text-xs text-ink-secondary underline hover:text-ink transition-colors duration-200"
           >
             Kembali ke arsip kajian
           </Link>
@@ -279,26 +308,42 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
   }
 
   return (
-    <div className="min-h-screen bg-canvas text-ink flex flex-col pb-24 sm:pb-12">
+    <div className="min-h-screen bg-canvas bg-ambient-fluid text-ink flex flex-col pb-24 sm:pb-12">
       <Navbar />
 
       {/* Processing Live Banner */}
       {isProcessing && (
-        <div className="bg-amber-50 border-b border-amber-200 px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-amber-900 shadow-minimal">
-          <div className="flex items-center gap-2.5">
-            <Loader2 className="w-4 h-4 animate-spin text-amber-700 shrink-0" />
-            <span className="font-medium">
-              Sedang membedah dan memberi syakal naskah Arab secara bertahap...
-              {jobProgress && jobProgress.total > 0 && (
-                <span className="font-bold ml-1">
-                  (Bagian {jobProgress.done} dari {jobProgress.total} selesai)
-                </span>
-              )}
+        <div className="bg-amber-50/90 backdrop-blur border-b border-amber-200 shadow-minimal relative overflow-hidden animate-fadeSlideDown">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-amber-900">
+            <div className="flex items-center gap-2.5">
+              <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
+                <div className="absolute inset-0 rounded-full bg-amber-400/40 animate-ping"></div>
+                <Loader2 className="w-4 h-4 animate-spin text-amber-700" />
+              </div>
+              <span className="font-medium">
+                Sedang membedah dan memberi syakal naskah Arab secara bertahap...
+                {jobProgress && jobProgress.total > 0 && (
+                  <span className="font-bold ml-1">
+                    (Bagian {jobProgress.done} dari {jobProgress.total} selesai)
+                  </span>
+                )}
+              </span>
+            </div>
+            <span className="text-[11px] text-amber-700 font-mono">
+              Setiap bagian yang selesai langsung muncul di bawah secara realtime
             </span>
           </div>
-          <span className="text-[11px] text-amber-700 font-mono">
-            Setiap bagian yang selesai langsung muncul di bawah secara realtime
-          </span>
+          {/* Fluid Progress Bar */}
+          <div className="w-full bg-amber-200/50 h-1 overflow-hidden">
+            <div
+              className="h-full bg-cedar transition-all duration-500 ease-fluid"
+              style={{
+                width: jobProgress && jobProgress.total > 0
+                  ? `${Math.max(10, Math.round((jobProgress.done / jobProgress.total) * 100))}%`
+                  : '40%',
+              }}
+            />
+          </div>
         </div>
       )}
 
@@ -564,12 +609,12 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
                                 key={w.id}
                                 type="button"
                                 onClick={() => setSelectedWord(w)}
-                                className={`inline-block mx-1 my-1 font-arabic transition-all px-2.5 py-0.5 rounded-lg cursor-pointer ${
+                                className={`inline-block mx-1 my-1 font-arabic transition-all duration-300 ease-fluid px-2.5 py-0.5 rounded-lg cursor-pointer active:scale-95 ${
                                   isSelected
-                                    ? 'bg-ink text-surface font-bold scale-105 shadow-minimal'
+                                    ? 'bg-ink text-surface font-bold scale-105 shadow-minimal shadow-glow ring-2 ring-cedar/25'
                                     : needsCheck
-                                      ? 'bg-amber-50 text-amber-900 underline decoration-amber-500/80 decoration-wavy underline-offset-8 hover:bg-amber-100'
-                                      : 'hover:bg-subtle hover:text-cedar'
+                                      ? 'bg-amber-50 text-amber-900 underline decoration-amber-500/80 decoration-wavy underline-offset-8 hover:bg-amber-100 hover:scale-[1.02]'
+                                      : 'hover:bg-subtle hover:text-cedar hover:scale-[1.02]'
                                 }`}
                               >
                                 {displayAr}
@@ -670,7 +715,10 @@ export default function DocumentEditorPage({ params }: { params: Promise<{ id: s
             {/* Right 5 Columns: Dedicated Word Inspector Panel (Sticky Desktop) */}
             <div className="lg:col-span-5 sticky top-20 hidden lg:block">
               {selectedWord ? (
-                <div className="bg-surface rounded-xl border border-border p-6 shadow-minimal space-y-5">
+                <div
+                  key={selectedWord.id}
+                  className="bg-surface rounded-2xl border border-border p-6 shadow-minimal space-y-5 animate-fadeSlideUp transition-all duration-300"
+                >
                   {/* Top Bar with Step Controls */}
                   <div className="flex items-center justify-between border-b border-borderlight pb-3">
                     <span className="font-mono text-[11px] uppercase tracking-wider text-ink-muted">

@@ -57,11 +57,11 @@ export default function HomePage() {
   const [activeDemoWord, setActiveDemoWord] = useState(demoWords[0]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-canvas text-ink">
+    <div className="flex flex-col min-h-screen bg-canvas bg-ambient-fluid text-ink">
       <Navbar />
 
       {/* Main Content */}
-      <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 py-12 md:py-20 w-full space-y-20">
+      <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 py-12 md:py-20 w-full space-y-20 animate-fadeSlideUp">
         {/* Hero Section: Editorial Asymmetric Split */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
           {/* Left 6 Columns: Value Proposition & Intent */}
@@ -132,10 +132,10 @@ export default function HomePage() {
                         key={w.ar}
                         type="button"
                         onClick={() => setActiveDemoWord(w)}
-                        className={`inline-block mx-1 my-1 font-arabic px-2.5 py-0.5 rounded-lg transition-all cursor-pointer ${
+                        className={`inline-block mx-1 my-1 font-arabic px-2.5 py-0.5 rounded-lg transition-all duration-300 ease-fluid cursor-pointer active:scale-95 ${
                           isSelected
-                            ? 'bg-ink text-surface font-bold shadow-minimal scale-105'
-                            : 'hover:bg-subtle hover:text-cedar'
+                            ? 'bg-ink text-surface font-bold shadow-minimal scale-105 shadow-glow ring-2 ring-cedar/20'
+                            : 'hover:bg-subtle hover:text-cedar hover:scale-[1.02]'
                         }`}
                       >
                         {w.ar}
@@ -146,7 +146,10 @@ export default function HomePage() {
               </div>
 
               {/* Active Word Dissection Inspector Card */}
-              <div className="p-4 rounded-xl border border-borderlight bg-surface space-y-3">
+              <div
+                key={activeDemoWord.ar}
+                className="p-4 rounded-xl border border-borderlight bg-surface space-y-3 animate-fadeSlideUp transition-all duration-300 shadow-minimal"
+              >
                 <div className="flex items-baseline justify-between border-b border-borderlight pb-2">
                   <div className="flex items-baseline gap-2">
                     <span className="font-arabic text-2xl font-bold text-ink">
@@ -192,9 +195,9 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {/* Feature 1 */}
-            <div className="p-6 rounded-xl bg-surface border border-border shadow-minimal space-y-3">
-              <span className="font-mono text-xs text-ink-muted">01</span>
-              <h3 className="font-serif text-lg text-ink font-medium">
+            <div className="p-6 rounded-xl bg-surface border border-border shadow-minimal space-y-3 transition-all duration-300 ease-fluid hover:-translate-y-1 hover:shadow-float hover:border-cedar/30 group">
+              <span className="font-mono text-xs text-ink-muted group-hover:text-cedar transition-colors">01</span>
+              <h3 className="font-serif text-lg text-ink font-medium group-hover:text-cedar transition-colors">
                 Pembedah Matan Interaktif
               </h3>
               <p className="text-xs text-ink-secondary leading-relaxed">
@@ -204,9 +207,9 @@ export default function HomePage() {
             </div>
 
             {/* Feature 2 */}
-            <div className="p-6 rounded-xl bg-surface border border-border shadow-minimal space-y-3">
-              <span className="font-mono text-xs text-ink-muted">02</span>
-              <h3 className="font-serif text-lg text-ink font-medium">
+            <div className="p-6 rounded-xl bg-surface border border-border shadow-minimal space-y-3 transition-all duration-300 ease-fluid hover:-translate-y-1 hover:shadow-float hover:border-ochre/30 group">
+              <span className="font-mono text-xs text-ink-muted group-hover:text-ochre transition-colors">02</span>
+              <h3 className="font-serif text-lg text-ink font-medium group-hover:text-ochre transition-colors">
                 Morfologi &amp; Tashrif Shorof
               </h3>
               <p className="text-xs text-ink-secondary leading-relaxed">
@@ -216,9 +219,9 @@ export default function HomePage() {
             </div>
 
             {/* Feature 3 */}
-            <div className="p-6 rounded-xl bg-surface border border-border shadow-minimal space-y-3">
-              <span className="font-mono text-xs text-ink-muted">03</span>
-              <h3 className="font-serif text-lg text-ink font-medium">
+            <div className="p-6 rounded-xl bg-surface border border-border shadow-minimal space-y-3 transition-all duration-300 ease-fluid hover:-translate-y-1 hover:shadow-float hover:border-cedar/30 group">
+              <span className="font-mono text-xs text-ink-muted group-hover:text-cedar transition-colors">03</span>
+              <h3 className="font-serif text-lg text-ink font-medium group-hover:text-cedar transition-colors">
                 Modul Cetak PDF Majelis
               </h3>
               <p className="text-xs text-ink-secondary leading-relaxed">

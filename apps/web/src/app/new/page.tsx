@@ -145,15 +145,15 @@ export default function NewDocumentPage() {
   };
 
   return (
-    <div className="min-h-screen bg-canvas text-ink pb-24 sm:pb-20">
+    <div className="min-h-screen bg-canvas bg-ambient-fluid text-ink pb-24 sm:pb-20">
       <Navbar />
 
-      <main className="max-w-2xl mx-auto px-5 py-10 sm:py-16">
+      <main className="max-w-2xl mx-auto px-5 py-10 sm:py-16 animate-fadeSlideUp">
         {/* Header */}
         <div className="mb-8">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-ink transition mb-3"
+            className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-ink transition-colors duration-200 mb-3"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Beranda</span>
@@ -174,7 +174,7 @@ export default function NewDocumentPage() {
               key={s.label}
               type="button"
               onClick={() => handleApplySample(s)}
-              className="px-3 py-1 rounded-full text-xs font-medium bg-surface border border-border text-ink-secondary hover:text-ink hover:bg-subtle transition active:scale-95"
+              className="px-3 py-1 rounded-full text-xs font-medium bg-surface border border-border text-ink-secondary hover:text-ink hover:bg-subtle transition-all duration-300 ease-fluid hover:-translate-y-0.5 hover:shadow-minimal active:scale-95"
             >
               {s.label}
             </button>
@@ -269,10 +269,10 @@ export default function NewDocumentPage() {
                     if (file) handleFileUpload(file);
                   }}
                   onClick={() => fileInputRef.current?.click()}
-                  className={`p-4 sm:p-5 rounded-xl border border-dashed text-center cursor-pointer transition-all ${
+                  className={`p-4 sm:p-5 rounded-xl border border-dashed text-center cursor-pointer transition-all duration-300 ease-fluid ${
                     isDragging
-                      ? 'border-ink bg-subtle/80 scale-[1.01]'
-                      : 'border-border bg-canvas/30 hover:border-ink/40 hover:bg-canvas/60'
+                      ? 'border-cedar bg-cedar-soft/40 shadow-glow scale-[1.01] ring-2 ring-cedar/20'
+                      : 'border-border bg-canvas/30 hover:border-cedar/50 hover:bg-canvas/70 hover:shadow-minimal'
                   }`}
                 >
                   <input
@@ -286,16 +286,22 @@ export default function NewDocumentPage() {
                     }}
                   />
                   {uploading ? (
-                    <div className="flex flex-col items-center justify-center gap-2 py-2">
-                      <Loader2 className="w-5 h-5 text-cedar animate-spin" />
+                    <div className="flex flex-col items-center justify-center gap-2.5 py-3 animate-fadeSlideUp">
+                      <div className="relative w-8 h-8 flex items-center justify-center">
+                        <div className="absolute inset-0 rounded-full bg-cedar/10 animate-ping"></div>
+                        <Loader2 className="w-5 h-5 text-cedar animate-spin" />
+                      </div>
                       <span className="text-xs font-medium text-ink">
                         Mengekstrak teks Arab dari dokumen...
                       </span>
-                      <span className="text-[10px] text-ink-muted">Mohon tunggu beberapa saat</span>
+                      <div className="w-48 h-1 bg-borderlight rounded-full overflow-hidden mt-0.5">
+                        <div className="h-full bg-cedar rounded-full skeleton-shimmer w-full"></div>
+                      </div>
+                      <span className="text-[10px] text-ink-muted">Menyaring dan mengisolasi lafaz Arab</span>
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center justify-center gap-1.5 py-1">
-                      <div className="w-8 h-8 rounded-full bg-subtle flex items-center justify-center text-ink-secondary mb-0.5">
+                    <div className="flex flex-col items-center justify-center gap-1.5 py-1 group">
+                      <div className="w-8 h-8 rounded-full bg-subtle flex items-center justify-center text-ink-secondary mb-0.5 transition-transform duration-300 ease-fluid group-hover:scale-110 group-hover:bg-cedar group-hover:text-surface">
                         <Upload className="w-4 h-4" />
                       </div>
                       <div className="text-xs text-ink font-medium">
@@ -359,9 +365,9 @@ export default function NewDocumentPage() {
                 <button
                   type="button"
                   onClick={() => setDetail('full')}
-                  className={`px-3 py-1 rounded-full text-xs font-medium transition ${
+                  className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 ease-fluid active:scale-95 ${
                     detail === 'full'
-                      ? 'bg-ink text-surface'
+                      ? 'bg-ink text-surface shadow-minimal'
                       : 'bg-subtle text-ink-secondary hover:text-ink'
                   }`}
                 >
@@ -370,9 +376,9 @@ export default function NewDocumentPage() {
                 <button
                   type="button"
                   onClick={() => setDetail('brief')}
-                  className={`px-3 py-1 rounded-full text-xs font-medium transition ${
+                  className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 ease-fluid active:scale-95 ${
                     detail === 'brief'
-                      ? 'bg-ink text-surface'
+                      ? 'bg-ink text-surface shadow-minimal'
                       : 'bg-subtle text-ink-secondary hover:text-ink'
                   }`}
                 >
@@ -386,17 +392,23 @@ export default function NewDocumentPage() {
               <button
                 type="submit"
                 disabled={loading || uploading || !sourceText.trim() || wordCount > 3000}
-                className="w-full py-3 rounded-full bg-cedar hover:bg-cedar-hover text-surface font-medium text-xs transition flex items-center justify-center gap-2 shadow-minimal disabled:opacity-40 active:scale-98"
+                className="w-full py-3.5 rounded-full bg-cedar hover:bg-cedar-hover text-surface font-medium text-xs transition-all duration-300 ease-fluid flex items-center justify-center gap-2 shadow-minimal hover:shadow-glow disabled:opacity-40 active:scale-98 relative overflow-hidden group"
               >
+                {loading && (
+                  <div className="absolute inset-0 skeleton-shimmer opacity-20"></div>
+                )}
                 {uploading ? (
                   <span>Mengekstrak Teks Dokumen...</span>
                 ) : loading ? (
-                  <span>Menyiapkan Analisis...</span>
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Menyiapkan Analisis...</span>
+                  </span>
                 ) : wordCount > 3000 ? (
                   <span>Maksimal 3.000 Kata ({wordCount.toLocaleString()} kata)</span>
                 ) : (
                   <>
-                    <Sparkles className="w-3.5 h-3.5" />
+                    <Sparkles className="w-3.5 h-3.5 transition-transform duration-300 group-hover:rotate-12" />
                     <span>Mulai Analisis Nahwu &amp; Shorof</span>
                   </>
                 )}
