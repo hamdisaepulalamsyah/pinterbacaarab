@@ -1,5 +1,7 @@
-import { PDFParse } from 'pdf-parse';
 import mammoth from 'mammoth';
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const pdfParse = require('pdf-parse/lib/pdf-parse.js');
 
 export interface ExtractionResult {
   text: string;
@@ -92,10 +94,8 @@ export async function extractTextFromBuffer(
     rawText = res.value || '';
   } else if (ext === 'pdf') {
     try {
-      const parser = new PDFParse({ data: buffer });
-      const res = await parser.getText();
-      rawText = res.text || '';
-      await parser.destroy();
+      const data = await pdfParse(buffer);
+      rawText = data?.text || '';
     } catch (err: any) {
       console.warn('PDFParse extraction error:', err.message);
     }
