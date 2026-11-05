@@ -2,6 +2,7 @@
   "name": "pinterbacaarab",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@9.15.4",
   "scripts": {
     "build": "pnpm --filter \"@pinterbacaarab/*\" run build",
     "lint": "prettier --check \"**/*.{ts,tsx,js,json,md}\"",
