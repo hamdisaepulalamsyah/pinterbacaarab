@@ -76,7 +76,50 @@ async function performOcrFallback(buffer: Buffer, mimeType: string): Promise<str
 }
 
 /**
- * Ekstraksi teks dari Buffer file (PDF, TXT, DOCX)
+ * Menyaring dan mengisolasi hanya teks Arab dari dokumen campuran (PDF/DOCX/TXT).
+ * Menghapus judul bahasa Indonesia, nama penyusun, nomor halaman, terjemahan Latin, dan syarah non-Arab.
+ */
+export function filterArabicOnly(text: string): string {
+  if (!text) return '';
+
+  const arabicCharRegex = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+  const lines = text.split(/\r?\n/);
+  const arabicParagraphs: string[] = [];
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line || !arabicCharRegex.test(line)) {
+      continue;
+    }
+
+    // Ekstrak segmen-segmen karakter Arab beserta tanda baca Arab/umum yang melekat
+    const matches = line.match(
+      /(?:[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]+[\s،؛؟.:()«»"'\-–—]*)+/gu
+    );
+
+    if (matches) {
+      const extractedPieces = matches
+        .map((m) => {
+          // Bersihkan tanda kurung/tanda hubung Latin yang tersisa di pinggir
+          return m.trim().replace(/^[\s()\-–—]+|[\s()\-–—]+$/g, '').trim();
+        })
+        .filter((m) => {
+          // Pastikan mengandung minimal 2 huruf Arab asli (menghindari artifact simbol)
+          const arabicLetters = m.match(/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/g);
+          return arabicLetters && arabicLetters.length >= 2;
+        });
+
+      if (extractedPieces.length > 0) {
+        arabicParagraphs.push(extractedPieces.join(' '));
+      }
+    }
+  }
+
+  return arabicParagraphs.join('\n');
+}
+
+/**
+ * Ekstraksi teks dari Buffer file (PDF, TXT, DOCX) dengan fokus murni pada teks Arab
  */
 export async function extractTextFromBuffer(
   buffer: Buffer,
@@ -99,25 +142,29 @@ export async function extractTextFromBuffer(
     } catch (err: any) {
       console.warn('PDFParse extraction error:', err.message);
     }
-
-    // Periksa apakah hasil ekstraksi teks langsung memuat huruf Arab
-    const hasArabic = /[\u0600-\u06FF]/.test(rawText);
-
-    // Bila tidak memuat huruf Arab yang cukup (kemungkinan PDF scan/gambar), gunakan OCR fallback
-    if (!hasArabic || rawText.trim().length < 15) {
-      const ocrText = await performOcrFallback(buffer, mimeType);
-      if (ocrText && ocrText.trim().length > 0) {
-        rawText = ocrText;
-        method = 'ocr';
-      }
-    }
   } else {
     // Format teks umum
     rawText = buffer.toString('utf-8');
   }
 
+  // Saring teks agar HANYA teks Arab yang diambil
+  let filteredArabic = filterArabicOnly(rawText);
+
+  // Bila hasil ekstraksi langsung tidak memuat teks Arab yang cukup (kemungkinan PDF scan/gambar),
+  // jalankan OCR fallback via vision LLM
+  if (ext === 'pdf' && filteredArabic.length < 15) {
+    const ocrText = await performOcrFallback(buffer, mimeType);
+    if (ocrText && ocrText.trim().length > 0) {
+      const ocrFiltered = filterArabicOnly(ocrText);
+      if (ocrFiltered.length > 0) {
+        filteredArabic = ocrFiltered;
+        method = 'ocr';
+      }
+    }
+  }
+
   // Bersihkan teks: rapikan newline dan whitespace
-  const cleaned = rawText
+  const cleaned = filteredArabic
     .replace(/\r\n/g, '\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim();

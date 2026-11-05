@@ -342,6 +342,18 @@ export function generateKajianHtml(doc: PdfDocumentData): string {
       color: #777777;
       margin-top: 2px;
     }
+
+    .doc-footer {
+      margin-top: 24px;
+      padding-top: 10px;
+      border-top: 1px solid #e5e5e0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 7.5pt;
+      color: #888888;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
   </style>
 </head>
 <body>
@@ -360,6 +372,11 @@ export function generateKajianHtml(doc: PdfDocumentData): string {
   <main>
     ${segmentsHtml}
   </main>
+
+  <footer class="doc-footer">
+    <span>Nahwu Studio — Lembaran Kajian I'rab Hadis &amp; Shorof</span>
+    <span>project by Hamdipyxis</span>
+  </footer>
 </body>
 </html>`;
 }

@@ -93,6 +93,10 @@ export default function NewDocumentPage() {
         wordCount: data.wordCount,
         method: data.method,
       });
+
+      if (data.wordCount > 3000) {
+        setError(`Teks Arab berhasil diekstrak (${data.wordCount.toLocaleString()} kata), namun melebihi batas sistem 3.000 kata. Silakan potong naskah menjadi bagian yang lebih ringkas agar tombol analisis aktif.`);
+      }
     } catch (err: any) {
       setError(err.message || 'Terjadi kesalahan saat mengekstrak dokumen.');
     } finally {
@@ -312,7 +316,11 @@ export default function NewDocumentPage() {
                 <label className="text-[11px] font-mono uppercase tracking-wider text-ink-muted block">
                   Matan Teks Arab
                 </label>
-                <span className="text-[11px] font-mono text-ink-muted">
+                <span
+                  className={`text-[11px] font-mono transition-colors ${
+                    wordCount > 3000 ? 'text-red-600 font-semibold' : 'text-ink-muted'
+                  }`}
+                >
                   {wordCount.toLocaleString()} / 3.000 kata
                 </span>
               </div>
@@ -322,9 +330,20 @@ export default function NewDocumentPage() {
                 value={sourceText}
                 onChange={(e) => setSourceText(e.target.value)}
                 placeholder="الصق النص العربي هنا..."
-                className="w-full p-4 rounded-xl border border-border bg-canvas/50 font-arabic text-2xl leading-[2.4] text-right focus:border-ink focus:outline-none transition shadow-inner"
+                className={`w-full p-4 rounded-xl border bg-canvas/50 font-arabic text-2xl leading-[2.4] text-right focus:border-ink focus:outline-none transition shadow-inner ${
+                  wordCount > 3000 ? 'border-red-300' : 'border-border'
+                }`}
                 required
               />
+
+              {wordCount > 3000 && (
+                <div className="mt-2 p-3 rounded-xl bg-red-50/90 border border-red-200 text-red-800 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                  <span>
+                    Jumlah teks Arab ({wordCount.toLocaleString()} kata) melebihi batas 3.000 kata. Silakan potong naskah menjadi bab yang lebih ringkas.
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Depth Mode */}
@@ -366,11 +385,15 @@ export default function NewDocumentPage() {
             <div className="pt-2">
               <button
                 type="submit"
-                disabled={loading || !sourceText.trim() || wordCount > 3000}
+                disabled={loading || uploading || !sourceText.trim() || wordCount > 3000}
                 className="w-full py-3 rounded-full bg-cedar hover:bg-cedar-hover text-surface font-medium text-xs transition flex items-center justify-center gap-2 shadow-minimal disabled:opacity-40 active:scale-98"
               >
-                {loading ? (
+                {uploading ? (
+                  <span>Mengekstrak Teks Dokumen...</span>
+                ) : loading ? (
                   <span>Menyiapkan Analisis...</span>
+                ) : wordCount > 3000 ? (
+                  <span>Maksimal 3.000 Kata ({wordCount.toLocaleString()} kata)</span>
                 ) : (
                   <>
                     <Sparkles className="w-3.5 h-3.5" />

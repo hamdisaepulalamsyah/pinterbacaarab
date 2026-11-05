@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import WatermarkFooter from '@/components/WatermarkFooter';
 
 export const metadata: Metadata = {
   title: 'Nahwu Studio — Pinter Baca Arab & I\'rab Hadis',
@@ -24,8 +25,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id">
-      <body className="antialiased min-h-screen bg-bgwarm text-ink selection:bg-gold/25 selection:text-forest">
-        {children}
+      <body className="antialiased min-h-screen bg-bgwarm text-ink selection:bg-gold/25 selection:text-forest flex flex-col justify-between">
+        <div className="flex-1 flex flex-col">
+          {children}
+        </div>
+        <WatermarkFooter />
       </body>
     </html>
   );
