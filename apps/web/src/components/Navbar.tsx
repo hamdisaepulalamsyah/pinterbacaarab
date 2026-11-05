@@ -11,11 +11,11 @@ export default function Navbar() {
     <header className="border-b border-borderlight/80 bg-canvas/80 backdrop-blur-md sticky top-0 z-50 transition-colors">
       <div className="max-w-4xl mx-auto px-5 h-14 flex items-center justify-between">
         {/* Brand */}
-        <Link href="/" className="flex items-center gap-2 group transition-transform duration-300 ease-fluid active:scale-95">
-          <span className="font-serif italic text-xl text-ink font-semibold tracking-tight group-hover:text-cedar transition-colors duration-300">
-            Nahwu
+        <Link href="/" className="flex items-center gap-1.5 group transition-transform duration-300 ease-fluid active:scale-95">
+          <span className="font-serif italic text-xl sm:text-2xl text-ink font-semibold tracking-tight group-hover:text-cedar transition-colors duration-300">
+            PinterBacaArab
           </span>
-          <span className="text-xs font-mono uppercase tracking-widest text-ink-muted group-hover:text-ochre transition-colors duration-300">
+          <span className="text-[10px] font-mono uppercase tracking-widest text-ink-muted group-hover:text-ochre transition-colors duration-300 px-1.5 py-0.5 rounded bg-subtle/80">
             Studio
           </span>
         </Link>

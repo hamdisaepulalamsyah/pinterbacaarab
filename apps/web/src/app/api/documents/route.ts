@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { countWords } from '@pinterbacaarab/shared';
+import { getOrCreateSessionUserId, USER_COOKIE_NAME } from '@/lib/user-session';
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,24 +22,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Ambil atau buat akun default untuk user / guest
-    let userId: string;
-    const { data: usersData } = await admin.auth.admin.listUsers();
-    if (usersData?.users && usersData.users.length > 0) {
-      userId = usersData.users[0].id;
-    } else {
-      const { data: created, error: createErr } = await admin.auth.admin.createUser({
-        email: `guest_${Date.now()}@nahwustudio.local`,
-        password: 'GuestPassword123!',
-        email_confirm: true,
-      });
-      if (createErr || !created.user) {
-        throw new Error(`Gagal inisialisasi akun pengguna: ${createErr?.message}`);
-      }
-      userId = created.user.id;
-    }
+    // 1. Dapatkan atau buat akun unik per perangkat pengunjung
+    const { userId } = await getOrCreateSessionUserId(req);
 
-    // 1. Simpan dokumen via admin client (melewati RLS)
+    // 2. Simpan dokumen via admin client
     const { data: doc, error: docError } = await admin
       .from('documents')
       .insert({
@@ -60,7 +47,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Buat job antrean
+    // 3. Buat job antrean
     const { data: job, error: jobError } = await admin
       .from('jobs')
       .insert({
@@ -79,11 +66,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return NextResponse.json({
+    const res = NextResponse.json({
       documentId: doc.id,
       jobId: job.id,
       status: 'queued',
     });
+
+    // Pasang cookie user ID agar perangkat mengingat arsipnya secara permanen
+    res.cookies.set(USER_COOKIE_NAME, userId, {
+      path: '/',
+      maxAge: 365 * 24 * 60 * 60,
+      sameSite: 'lax',
+      httpOnly: false,
+    });
+
+    return res;
   } catch (err: any) {
     return NextResponse.json(
       { error: err.message || 'Terjadi kesalahan server.' },
@@ -92,19 +89,33 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const admin = createAdminClient();
+    const { userId } = await getOrCreateSessionUserId(req);
+
+    // Hanya ambil dokumen milik pengguna/perangkat ini (arsip privat)
     const { data, error } = await admin
       .from('documents')
       .select('*')
+      .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ documents: data || [] });
+    const res = NextResponse.json({ documents: data || [] });
+
+    // Pastikan cookie tersimpan pada browser
+    res.cookies.set(USER_COOKIE_NAME, userId, {
+      path: '/',
+      maxAge: 365 * 24 * 60 * 60,
+      sameSite: 'lax',
+      httpOnly: false,
+    });
+
+    return res;
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
