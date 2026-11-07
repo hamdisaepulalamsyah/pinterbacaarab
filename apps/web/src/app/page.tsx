@@ -522,24 +522,24 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Featured Talaqqi Banner */}
-          <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-cedar-soft/80 via-surface to-ochre-soft/80 border border-border shadow-float flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div className="space-y-2 max-w-2xl">
-              <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-ochre/15 text-ochre text-[11px] font-mono font-semibold">
-                <span>Fitur Baru • Mode Talaqqi Terbimbing</span>
-              </div>
-              <h3 className="font-serif text-2xl text-ink font-normal">
-                Belum Lancar Membaca Arab Gundul? Latihan Bersama Ustadz
+          {/* Featured Practice Banner */}
+          <div className="p-5 sm:p-8 rounded-2xl bg-gradient-to-r from-cedar-soft/70 via-surface to-ochre-soft/70 border border-border shadow-float flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+            <div className="space-y-1.5 max-w-2xl">
+              <span className="text-xs font-mono text-ochre font-semibold tracking-wider uppercase block">
+                Latihan Baca Arab Gundul
+              </span>
+              <h3 className="font-serif text-xl sm:text-2xl text-ink font-normal">
+                Belum Lancar Membaca Naskah Gundul? Latihan Bersama Asisten
               </h3>
               <p className="text-xs sm:text-sm text-ink-secondary leading-relaxed">
-                Bimbingan kata demi kata: tebak posisi nahwu, tentukan harakat akhir yang tepat, dan buka syakal matan sedikit demi sedikit. Dilengkapi evaluasi dan alasan kaidah jika salah menebak.
+                Tebak kedudukan nahwu dan harakat akhir kata per kata. Dilengkapi penjelasan langsung saat salah menjawab, serta opsi latihan menggunakan teks dari arsip kajianmu.
               </p>
             </div>
             <Link
               href="/practice"
-              className="px-6 py-3 rounded-xl bg-cedar hover:bg-cedar-hover text-surface text-xs sm:text-sm font-semibold transition flex items-center gap-2 shadow-minimal shrink-0 active:scale-95"
+              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-cedar hover:bg-cedar-hover text-surface text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 shadow-minimal shrink-0 active:scale-95"
             >
-              <span>Mulai Latihan Sorogan</span>
+              <span>Mulai Latihan Baca</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>

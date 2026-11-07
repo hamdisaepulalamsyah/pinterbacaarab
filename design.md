@@ -147,16 +147,17 @@ Animasi dirancang halus, organik (*fluid*), dan tidak mengganggu keterbacaan:
 - Kata berstatus **Aktif / Fokus**: Tampil gundul dengan border ochre tebal 2px, bayangan glow ochre, dan badge *"Fokus"*.
 - Kata berstatus **Masa Depan**: Tampil gundul dengan warna abu-abu transparan (`text-ink-muted/50`).
 
-### C. Kotak Bimbingan Talaqqi Ustadz (`TalaqqiMentorBox`)
-- Memiliki avatar pembimbing halaqah dengan ikon topi sarjana/kitab.
-- Header peran: *"Ustadz Pembimbing Talaqqi"*.
+### C. Kotak Bimbingan Asisten (`PracticeMentorBox`)
+- Memiliki avatar asisten cerdas dengan ikon bot/sparkle.
+- Header peran: *"Asisten"*.
+- Sumber naskah fleksibel: Dapat memilih naskah contoh hadis terkurasi maupun langsung dari koleksi arsip dokumen pengguna (`/api/documents`).
 - Pertanyaan berjenjang 2 tahap:
   1. **Tahap 1**: Menentukan kedudukan/posisi nahwu.
   2. **Tahap 2**: Menentukan harakat akhir/syakal i'rab yang benar.
 - Umpan Balik Pintar:
-  - **Benar (Mumtaz)**: Kartu hijau zamrud dengan ikon bintang/sparkle dan apresiasi shahih.
-  - **Salah (Afwan)**: Kartu merah lembut dengan ikon tanya dan **penjelasan mendidik mengapa jawaban tersebut salah**.
-- Tombol *"Minta Petunjuk Ustadz"* untuk membuka petunjuk kaidah tanpa langsung membocorkan jawaban.
+  - **Benar**: Kartu hijau zamrud dengan ikon sparkle dan penjelasan kaidah i'rab.
+  - **Salah**: Kartu merah lembut dengan ikon tanya dan **penjelasan mendidik mengapa jawaban tersebut salah**.
+- Tombol *"Minta Petunjuk Asisten"* untuk membuka petunjuk kaidah tanpa langsung membocorkan jawaban.
 
 ### D. Footer & Watermark (`WatermarkFooter.tsx`)
 - Ditampilkan di semua halaman secara konsisten.

@@ -1,3 +1,5 @@
+import { stripHarakat } from '@/lib/arabic';
+
 export interface PracticeOption {
   id: string;
   label: string;
@@ -1194,3 +1196,139 @@ export const PRACTICE_LESSONS: PracticeLesson[] = [
     ],
   },
 ];
+
+const COMMON_ROLE_CANDIDATES = [
+  { key: 'fiil_madhi', label: "Fi'il Madhi (Kata kerja lampau)", test: /fi['i]l.*madh/i },
+  { key: 'fiil_mudhari', label: "Fi'il Mudhari' (Kata kerja kini/nanti)", test: /fi['i]l.*mudh/i },
+  { key: 'mubtada', label: "Mubtada' (Subjek awal kalimat)", test: /mubtada/i },
+  { key: 'khabar', label: "Khabar (Predikat penyempurna makna)", test: /khabar/i },
+  { key: 'fail', label: "Fa'il (Pelaku pekerjaan)", test: /fa['i]l/i },
+  { key: 'naibul_fail', label: "Na'ibul Fa'il (Pengganti pelaku)", test: /na['i]b.*fa['i]l/i },
+  { key: 'maful', label: "Maf'ul Bih (Objek penderita)", test: /maf['i]ul/i },
+  { key: 'mudhaf_ilaih', label: "Mudhaf Ilaih (Kata sandang kepemilikan)", test: /mudhaf.*ilaih/i },
+  { key: 'harf_jar', label: "Harf Jar (Huruf pen-jarr)", test: /harf.*jar|huruf.*jar/i },
+  { key: 'majrur', label: "Isim Majrur (Kata yang dijarr-kan)", test: /majrur/i },
+  { key: 'shifat', label: "Na'at / Shifat (Kata sifat)", test: /shifat|na['a]t/i },
+  { key: 'hal', label: "Hal (Keterangan keadaan)", test: /\bhal\b/i },
+];
+
+/**
+ * Mengubah dokumen dari arsip database pengguna menjadi modul latihan interaktif dinamis.
+ */
+export function convertDocToPracticeLesson(doc: any): PracticeLesson {
+  const allWords: any[] = [];
+  const sortedSegs = (doc.segments || []).sort(
+    (a: any, b: any) => (a.position || 0) - (b.position || 0),
+  );
+
+  sortedSegs.forEach((seg: any) => {
+    const segWords = (seg.words || []).sort(
+      (a: any, b: any) => (a.position || 0) - (b.position || 0),
+    );
+    allWords.push(...segWords);
+  });
+
+  const fullMatanGundul = doc.source_text || '';
+  const fullMatanVocalized =
+    sortedSegs
+      .map((s: any) => s.arabic_vocalized)
+      .filter(Boolean)
+      .join(' ') || fullMatanGundul;
+
+  const translation =
+    sortedSegs
+      .map((s: any) => s.translation_id)
+      .filter(Boolean)
+      .join(' ') || (doc.title || 'Kajian Naskah Arab');
+
+  // Ambil maksimal 20 kata pertama untuk sesi latihan terfokus & menyenangkan
+  const targetWords = allWords.slice(0, 20);
+
+  const steps: PracticeStep[] = targetWords.map((w, idx) => {
+    const vocalized = w.arabic_vocalized || w.ar || '';
+    const gundul = stripHarakat(vocalized);
+    const nahwu = w.nahwu || "Kaidah I'rab";
+    const meaning = w.meaning_id || '—';
+    const wazan = w.sharf?.wazan || '—';
+    const root = w.sharf?.root || '—';
+    const shighah = w.sharf?.tashrif || '—';
+
+    // 1. Deteksi peran yang cocok
+    const matched = COMMON_ROLE_CANDIDATES.find((rc) => rc.test.test(nahwu));
+    const correctRoleLabel = matched ? matched.label : (nahwu.slice(0, 40) + '...');
+
+    // Ambil 2 pengecoh yang tidak cocok
+    const distractors = COMMON_ROLE_CANDIDATES.filter((rc) => !rc.test.test(nahwu)).slice(0, 2);
+
+    const kedudukanOptions: PracticeOption[] = [
+      {
+        id: 'a',
+        label: correctRoleLabel,
+        isCorrect: true,
+        explanation: `Tepat sekali! Sesuai analisis naskah: ${nahwu}`,
+      },
+      {
+        id: 'b',
+        label: distractors[0]?.label || "Maf'ul Bih (Objek)",
+        isCorrect: false,
+        explanation: `Kurang tepat. Perhatikan konteksnya dalam naskah, kata ini dianalisis sebagai: ${nahwu}`,
+      },
+      {
+        id: 'c',
+        label: distractors[1]?.label || "Mubtada' (Subjek)",
+        isCorrect: false,
+        explanation: `Kurang tepat. Kedudukan yang benar adalah: ${nahwu}`,
+      },
+    ];
+
+    // 2. Opsi Harakat
+    const harakatOptions: PracticeOption[] = [
+      {
+        id: 'a',
+        label: `${vocalized} (Sesuai I'rab)`,
+        isCorrect: true,
+        explanation: `Benar! Bacaan yang tepat adalah ${vocalized} (${meaning}).`,
+      },
+      {
+        id: 'b',
+        label: `${gundul} (Alternatif lain)`,
+        isCorrect: false,
+        explanation: `Kurang tepat. Bentuk bersyakal yang tepat adalah ${vocalized} sesuai i'rab: ${nahwu}.`,
+      },
+    ];
+
+    return {
+      wordIndex: idx,
+      wordGundul: gundul,
+      wordVocalized: vocalized,
+      meaning,
+      nahwuRule: nahwu,
+      wazan,
+      root,
+      shighah,
+      kedudukanQuestion: {
+        prompt: `Perhatikan kata ke-${idx + 1} 「${gundul}」. Apa kedudukan nahwunya dalam kalimat?`,
+        hint: `Perhatikan posisi kata ini dalam susunan kalimat. I'rab: ${nahwu.slice(0, 60)}...`,
+        options: kedudukanOptions,
+      },
+      harakatQuestion: {
+        prompt: `Bagaimana harakat/bacaan yang tepat untuk lafaz 「${gundul}」 ini?`,
+        hint: `Tinjau kedudukan nahwunya: ${nahwu}`,
+        options: harakatOptions,
+      },
+    };
+  });
+
+  return {
+    id: `doc-${doc.id}`,
+    title: doc.title || 'Dokumen Arsip',
+    category: 'mutawassith',
+    levelLabel: doc.source_name ? `Arsip: ${doc.source_name}` : 'Arsip Saya',
+    source: doc.source_name || doc.title || 'Arsip Kajian',
+    fullMatanGundul,
+    fullMatanVocalized,
+    translation,
+    introAdvice: `Mari latihan membaca naskah "${doc.title}" kata per kata bersama Asisten.`,
+    steps,
+  };
+}
