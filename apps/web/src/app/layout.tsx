@@ -25,7 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id">
-      <body className="antialiased min-h-screen bg-bgwarm text-ink selection:bg-gold/25 selection:text-forest flex flex-col justify-between relative overflow-x-hidden">
+      <body className="antialiased min-h-screen bg-parchment-texture text-ink selection:bg-gold/25 selection:text-forest flex flex-col justify-between relative overflow-x-hidden">
         {/* Subtle Ambient Floating Aurora Backdrop */}
         <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10 select-none">
           <div className="absolute -top-[15%] left-[10%] w-[450px] h-[450px] rounded-full bg-cedar-soft/40 blur-[90px] animate-aurora" />

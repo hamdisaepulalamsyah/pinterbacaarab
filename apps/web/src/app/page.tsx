@@ -276,16 +276,11 @@ export default function HomePage() {
       <Navbar />
 
       {/* Main Content */}
-      <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 py-12 md:py-20 w-full space-y-20 animate-fadeSlideUp">
+      <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-16 w-full space-y-16 sm:space-y-24 animate-fadeSlideUp">
         {/* Hero Section: Editorial Asymmetric Split */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
           {/* Left 6 Columns: Value Proposition & Intent */}
           <div className="lg:col-span-6 space-y-6 text-left">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-border/80 bg-surface/90 text-xs font-mono text-ink-secondary shadow-minimal backdrop-blur-sm">
-              <span className="w-2 h-2 rounded-full bg-cedar animate-pulse"></span>
-              <span>Platform Telaah &amp; Bedah Nahwu-Shorof</span>
-            </div>
-
             <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-ink font-normal leading-[1.12] tracking-tight">
               Membaca Matan Arab dengan Ketelitian{' '}
               <span className="italic text-cedar">Nahwu &amp; Shorof</span>
@@ -300,21 +295,20 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
               <Link
                 href="/new"
-                className="w-full sm:w-auto px-6 py-3 rounded-lg bg-ink hover:bg-stone-800 text-surface font-medium text-xs sm:text-sm transition flex items-center justify-center gap-2 shadow-minimal active:scale-95 group"
+                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-ink hover:bg-stone-800 text-surface font-medium text-xs sm:text-sm transition flex items-center justify-center gap-2 shadow-minimal active:scale-95 group"
               >
                 <span>Mulai Analisis Matan</span>
                 <ArrowRight className="w-4 h-4 text-stone-300 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
                 href="/practice"
-                className="w-full sm:w-auto px-5 py-3 rounded-lg border border-ochre/40 bg-ochre-soft/80 hover:bg-ochre-soft text-ochre text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 shadow-minimal"
+                className="w-full sm:w-auto px-5 py-3 rounded-xl border border-ochre/40 bg-ochre-soft/80 hover:bg-ochre-soft text-ochre text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 shadow-minimal active:scale-95"
               >
                 <span>Latihan Baca Arab</span>
-                <span className="text-[10px] bg-ochre text-surface px-1.5 py-0.5 rounded-full font-mono">Baru</span>
               </Link>
               <Link
                 href="/library"
-                className="w-full sm:w-auto px-5 py-3 rounded-lg border border-border bg-surface hover:bg-subtle text-ink-secondary text-xs sm:text-sm font-medium transition text-center"
+                className="w-full sm:w-auto px-5 py-3 rounded-xl border border-border bg-surface hover:bg-subtle text-ink-secondary text-xs sm:text-sm font-medium transition text-center"
               >
                 Buka Arsip
               </Link>
@@ -335,62 +329,40 @@ export default function HomePage() {
 
           {/* Right 6 Columns: Living Auto-Advancing Workbench */}
           <div className="lg:col-span-6">
-            <div className="bg-surface/95 backdrop-blur-md rounded-2xl border border-border p-5 sm:p-7 shadow-float space-y-5 relative overflow-hidden">
+            <div className="bg-surface/95 backdrop-blur-md rounded-2xl border border-border p-5 sm:p-6 shadow-float space-y-4 relative overflow-hidden">
               {/* Subtle accent bar on top indicating active auto play */}
               <div className="absolute top-0 left-0 right-0 h-1 bg-borderlight overflow-hidden">
-                {isAutoPlaying && (
-                  <div
-                    key={`${activeSampleIndex}-${activeWordIndex}`}
-                    className="h-full bg-cedar animate-[shrink_2.8s_linear_forwards]"
-                    style={{
-                      animation: 'progressFill 2.8s linear infinite',
-                    }}
-                  />
-                )}
+                <div
+                  key={`${activeSampleIndex}-${activeWordIndex}`}
+                  className="h-full bg-cedar animate-[shrink_2.8s_linear_forwards]"
+                  style={{
+                    animation: 'progressFill 2.8s linear infinite',
+                  }}
+                />
               </div>
 
-              {/* Sample Tabs & Auto-Play Controller */}
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-borderlight pb-3">
-                <div className="flex items-center gap-1 overflow-x-auto max-w-full pb-1 sm:pb-0 scrollbar-none">
+              {/* Sample Tabs & Living Auto-Ticker Indicator */}
+              <div className="flex items-center justify-between gap-2 border-b border-borderlight pb-3">
+                <div className="flex items-center gap-1 overflow-x-auto max-w-[70%] sm:max-w-none scrollbar-none">
                   {DEMO_SAMPLES.map((s, idx) => (
                     <button
                       key={s.id}
                       type="button"
                       onClick={() => handleSelectSample(idx)}
-                      className={`text-[11px] font-mono px-2.5 py-1 rounded-md transition-all whitespace-nowrap ${
+                      className={`text-xs font-medium px-2.5 py-1 rounded-lg transition-all whitespace-nowrap ${
                         idx === activeSampleIndex
                           ? 'bg-cedar/10 text-cedar font-semibold border border-cedar/30'
                           : 'text-ink-muted hover:text-ink hover:bg-subtle'
                       }`}
                     >
-                      {s.title}
+                      {s.title.replace('Hadis ', '')}
                     </button>
                   ))}
                 </div>
 
-                <div className="flex items-center gap-2 text-xs font-mono">
-                  <button
-                    type="button"
-                    onClick={toggleAutoPlay}
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] border transition ${
-                      isAutoPlaying
-                        ? 'border-emerald-700/30 bg-emerald-50 text-emerald-800'
-                        : 'border-border text-ink-muted hover:bg-subtle'
-                    }`}
-                    title={isAutoPlaying ? 'Klik untuk menjeda animasi' : 'Klik untuk memutar animasi'}
-                  >
-                    {isAutoPlaying ? (
-                      <>
-                        <Pause className="w-2.5 h-2.5" />
-                        <span>Otomatis</span>
-                      </>
-                    ) : (
-                      <>
-                        <Play className="w-2.5 h-2.5" />
-                        <span>Putar</span>
-                      </>
-                    )}
-                  </button>
+                <div className="flex items-center gap-1.5 text-[11px] font-mono text-cedar shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cedar animate-pulse"></span>
+                  <span className="hidden sm:inline">Telaah Aktif</span>
                 </div>
               </div>
 
@@ -400,15 +372,15 @@ export default function HomePage() {
                 <span className="text-cedar font-medium">Klik lafaz untuk membedah</span>
               </div>
 
-              {/* Matan Box with Unclipped Arabic Word Pills */}
-              <div className="p-5 sm:p-6 rounded-xl bg-subtle/50 text-right space-y-2 select-none">
+              {/* Matan Box with Natural Word Proportions (Anti-Stretched) */}
+              <div className="p-4 sm:p-5 rounded-xl bg-subtle/50 text-right space-y-1.5 select-none border border-borderlight/60">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-ink-muted block text-left">
                   Matan Bersyakal
                 </span>
                 <div
                   dir="rtl"
                   lang="ar"
-                  className="font-arabic text-3xl sm:text-4xl text-ink text-right flex flex-wrap justify-end items-center gap-y-3 gap-x-1 select-none overflow-visible leading-[3] sm:leading-[3.2]"
+                  className="font-arabic text-2xl sm:text-3xl text-ink text-right flex flex-wrap justify-end items-center gap-2 sm:gap-2.5 py-2 select-none overflow-visible"
                 >
                   {currentSample.words.map((w, idx) => {
                     const isSelected = idx === activeWordIndex;
@@ -417,13 +389,13 @@ export default function HomePage() {
                         key={`${w.ar}-${idx}`}
                         type="button"
                         onClick={() => handleSelectWord(idx)}
-                        className={`relative inline-flex items-center justify-center font-arabic px-3.5 py-2 rounded-xl transition-all duration-300 ease-fluid cursor-pointer select-none outline-none focus:outline-none ${
+                        className={`h-auto self-center font-arabic px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-xl transition-all duration-300 ease-fluid cursor-pointer select-none outline-none leading-normal ${
                           isSelected
-                            ? 'bg-cedar text-surface font-bold shadow-float scale-105 ring-2 ring-cedar/40'
-                            : 'text-ink hover:bg-surface hover:text-cedar hover:shadow-minimal'
+                            ? 'bg-cedar text-surface font-bold shadow-minimal scale-105 ring-2 ring-cedar/25'
+                            : 'text-ink hover:bg-surface hover:text-cedar'
                         }`}
                       >
-                        <span className="relative z-10 block pointer-events-none">{w.ar}</span>
+                        <span className="block leading-normal">{w.ar}</span>
                       </button>
                     );
                   })}
@@ -433,11 +405,11 @@ export default function HomePage() {
               {/* Active Word Dissection Inspector Card */}
               <div
                 key={`${currentSample.id}-${activeWord.ar}-${activeWordIndex}`}
-                className="p-4 sm:p-5 rounded-xl border border-borderlight bg-surface space-y-3 animate-fadeSlideUp transition-all duration-300 shadow-minimal"
+                className="p-4 rounded-xl border border-borderlight bg-surface space-y-3 animate-fadeSlideUp transition-all duration-300 shadow-minimal"
               >
                 <div className="flex items-baseline justify-between border-b border-borderlight pb-2">
                   <div className="flex items-baseline gap-2.5">
-                    <span className="font-arabic text-2xl sm:text-3xl font-bold text-ink select-none leading-relaxed">
+                    <span className="font-arabic text-2xl sm:text-3xl font-bold text-ink select-none leading-normal">
                       {activeWord.ar}
                     </span>
                     <span className="text-xs text-ink-secondary font-medium">
@@ -473,75 +445,204 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Feature Grid: 3 Solid Pillars */}
-        <section className="space-y-6 pt-8 border-t border-border">
-          <div className="max-w-xl">
-            <span className="font-mono text-xs uppercase tracking-widest text-ink-muted block mb-1">
-              Alat &amp; Fitur Kajian
+        {/* Authentic Scholarly Architecture Section (Creative & Non-Generic) */}
+        <section className="space-y-8 pt-6 border-t border-border">
+          <div className="max-w-2xl text-left space-y-1.5">
+            <span className="font-mono text-xs uppercase tracking-widest text-ochre font-semibold block">
+              Metodologi &amp; Anatomi Telaah
             </span>
             <h2 className="font-serif text-2xl sm:text-3xl text-ink font-normal">
-              Dirancang untuk Penuntut Ilmu &amp; Pengajar Bahasa Arab
+              Standar Keilmuan Bahasa Arab untuk Majelis &amp; Thalabul &apos;Ilmi
             </h2>
+            <p className="text-xs sm:text-sm text-ink-secondary leading-relaxed">
+              Setiap lafaz diurai secara presisi mengikuti kaidah nahwu klasik dan timbangan shorof, siap diajarkan maupun dicetak.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {/* Feature 1 */}
-            <div className="p-6 rounded-xl bg-surface border border-border shadow-minimal space-y-3 transition-all duration-300 ease-fluid hover:-translate-y-1 hover:shadow-float hover:border-cedar/30 group">
-              <span className="font-mono text-xs text-ink-muted group-hover:text-cedar transition-colors">01</span>
-              <h3 className="font-serif text-lg text-ink font-medium group-hover:text-cedar transition-colors">
-                Pembedah Matan Interaktif
-              </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Visual Module 1: Syntax Tree */}
+            <div className="p-6 rounded-2xl bg-surface border border-border shadow-minimal space-y-4 transition-all duration-300 hover:shadow-float hover:border-cedar/40 group">
+              <div className="flex items-center justify-between border-b border-borderlight pb-3">
+                <span className="font-serif font-semibold text-base text-ink group-hover:text-cedar transition-colors">
+                  Pembedah I&apos;rab Kalimat
+                </span>
+                <span className="text-[10px] font-mono text-ink-muted px-2 py-0.5 rounded bg-subtle">
+                  Nahwu
+                </span>
+              </div>
+
+              {/* Visual Syntax Tree Preview */}
+              <div className="p-3.5 rounded-xl bg-subtle/60 border border-borderlight space-y-2.5">
+                <div className="flex items-center justify-between text-[11px] font-mono text-ink-muted">
+                  <span>Alur Fungsi Sintaksis:</span>
+                  <span className="text-emerald-800 font-semibold">Terkoneksi Presisi</span>
+                </div>
+                <div className="flex items-center justify-between gap-1 text-center">
+                  <div className="flex-1 p-2 rounded-lg bg-surface border border-borderlight">
+                    <span className="font-arabic text-sm text-ink block">فِعْلٌ</span>
+                    <span className="text-[9px] font-mono text-ink-muted">Kata Kerja</span>
+                  </div>
+                  <span className="text-xs text-ink-muted">→</span>
+                  <div className="flex-1 p-2 rounded-lg bg-emerald-50 border border-emerald-200">
+                    <span className="font-arabic text-sm text-emerald-900 font-bold block">فَاعِلٌ</span>
+                    <span className="text-[9px] font-mono text-emerald-700">Marfu&apos;</span>
+                  </div>
+                  <span className="text-xs text-ink-muted">→</span>
+                  <div className="flex-1 p-2 rounded-lg bg-amber-50 border border-amber-200">
+                    <span className="font-arabic text-sm text-amber-900 font-bold block">مَفْعُولٌ</span>
+                    <span className="text-[9px] font-mono text-amber-700">Manshub</span>
+                  </div>
+                </div>
+              </div>
+
               <p className="text-xs text-ink-secondary leading-relaxed">
-                Setiap kata dalam kalimat dipetakan ke fungsi gramatikanya: Mubtada&apos;, Khabar,
-                Fa&apos;il, Maf&apos;ul, Mudhaf Ilaih, dan Huruf Jar dengan tanda I&apos;rab presisi.
+                Memetakan setiap lafaz ke kedudukan gramatikanya: Mubtada&apos;, Khabar, Fa&apos;il,
+                Maf&apos;ul, Mudhaf Ilaih, hingga Jar Majrur lengkap dengan tanda i&apos;rab zhahirah maupun muqaddarah.
               </p>
             </div>
 
-            {/* Feature 2 */}
-            <div className="p-6 rounded-xl bg-surface border border-border shadow-minimal space-y-3 transition-all duration-300 ease-fluid hover:-translate-y-1 hover:shadow-float hover:border-ochre/30 group">
-              <span className="font-mono text-xs text-ink-muted group-hover:text-ochre transition-colors">02</span>
-              <h3 className="font-serif text-lg text-ink font-medium group-hover:text-ochre transition-colors">
-                Morfologi &amp; Tashrif Shorof
-              </h3>
+            {/* Visual Module 2: Morphological Root Matrix */}
+            <div className="p-6 rounded-2xl bg-surface border border-border shadow-minimal space-y-4 transition-all duration-300 hover:shadow-float hover:border-ochre/40 group">
+              <div className="flex items-center justify-between border-b border-borderlight pb-3">
+                <span className="font-serif font-semibold text-base text-ink group-hover:text-ochre transition-colors">
+                  Timbangan Tashrif Shorof
+                </span>
+                <span className="text-[10px] font-mono text-ink-muted px-2 py-0.5 rounded bg-subtle">
+                  Morfologi
+                </span>
+              </div>
+
+              {/* Visual Wazan Matrix Preview */}
+              <div className="p-3.5 rounded-xl bg-subtle/60 border border-borderlight space-y-2.5">
+                <div className="flex items-center justify-between text-[11px] font-mono text-ink-muted">
+                  <span>Akar Huruf: <strong className="text-ink">ف - ع - ل</strong></span>
+                  <span className="text-ochre font-semibold">22 Wazan</span>
+                </div>
+                <div className="grid grid-cols-3 gap-1.5 text-center text-xs">
+                  <div className="p-1.5 rounded-lg bg-surface border border-borderlight">
+                    <span className="font-arabic text-xs font-semibold text-ink block">فَعَلَ</span>
+                    <span className="text-[9px] font-mono text-ink-muted">Madhi</span>
+                  </div>
+                  <div className="p-1.5 rounded-lg bg-surface border border-borderlight">
+                    <span className="font-arabic text-xs font-semibold text-ink block">يَفْعُلُ</span>
+                    <span className="text-[9px] font-mono text-ink-muted">Mudhari&apos;</span>
+                  </div>
+                  <div className="p-1.5 rounded-lg bg-surface border border-borderlight">
+                    <span className="font-arabic text-xs font-semibold text-ink block">فَعْلًا</span>
+                    <span className="text-[9px] font-mono text-ink-muted">Masdar</span>
+                  </div>
+                </div>
+              </div>
+
               <p className="text-xs text-ink-secondary leading-relaxed">
-                Identifikasi akar huruf (Fa-&apos;Ain-Lam), wazan mujarrad maupun mazid, serta
-                perubahan shighah fi&apos;il madhi, mudhari&apos;, masdar, hingga isim fa&apos;il.
+                Membongkar perubahan bentuk kata dari akar konsonan asli (Tsulatsi Mujarrad &amp; Mazid),
+                membedakan fi&apos;il madhi, mudhari&apos;, isim fa&apos;il, isim maf&apos;ul, hingga masdar mimi.
               </p>
             </div>
 
-            {/* Feature 3 */}
-            <div className="p-6 rounded-xl bg-surface border border-border shadow-minimal space-y-3 transition-all duration-300 ease-fluid hover:-translate-y-1 hover:shadow-float hover:border-cedar/30 group">
-              <span className="font-mono text-xs text-ink-muted group-hover:text-cedar transition-colors">03</span>
-              <h3 className="font-serif text-lg text-ink font-medium group-hover:text-cedar transition-colors">
-                Modul Cetak PDF Majelis
-              </h3>
+            {/* Visual Module 3: PDF Handout Format */}
+            <div className="p-6 rounded-2xl bg-surface border border-border shadow-minimal space-y-4 transition-all duration-300 hover:shadow-float hover:border-cedar/40 group">
+              <div className="flex items-center justify-between border-b border-borderlight pb-3">
+                <span className="font-serif font-semibold text-base text-ink group-hover:text-cedar transition-colors">
+                  Modul Cetak A4 Landscape
+                </span>
+                <span className="text-[10px] font-mono text-ink-muted px-2 py-0.5 rounded bg-subtle">
+                  Majelis
+                </span>
+              </div>
+
+              {/* Visual PDF Mockup Preview */}
+              <div className="p-3.5 rounded-xl bg-subtle/60 border border-borderlight space-y-2">
+                <div className="flex items-center justify-between text-[11px] font-mono text-ink-muted">
+                  <span>Lembaran Siap Fotokopi</span>
+                  <span className="text-cedar font-semibold">Font Amiri</span>
+                </div>
+                <div className="p-2.5 rounded-lg bg-surface border border-borderlight space-y-1 text-[10px] font-mono">
+                  <div className="flex items-center justify-between border-b border-borderlight pb-1">
+                    <span className="font-bold text-ink truncate">Hadis Niat &bull; Shahih Bukhari</span>
+                    <span className="text-ink-muted">Hal 1/2</span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-1 pt-1 text-center text-[9px] text-ink-secondary">
+                    <span className="bg-subtle p-0.5 rounded">Lafaz</span>
+                    <span className="bg-subtle p-0.5 rounded">Arti</span>
+                    <span className="bg-subtle p-0.5 rounded">I&apos;rab</span>
+                    <span className="bg-subtle p-0.5 rounded">Wazan</span>
+                  </div>
+                </div>
+              </div>
+
               <p className="text-xs text-ink-secondary leading-relaxed">
-                Ubah berkas digital menjadi lembaran cetak A4 landscape 4 kolom berfont Amiri resmi,
-                siap difotokopi untuk materi kajian santri dan thalabul &apos;ilmi.
+                Sekali klik untuk mengubah naskah digital menjadi dokumen PDF resmi 4 kolom berbingkai rapi,
+                ideal untuk materi halaqah santri, kutubut turats, dan talaqqi pesantren.
               </p>
             </div>
           </div>
 
-          {/* Featured Practice Banner */}
-          <div className="p-5 sm:p-8 rounded-2xl bg-gradient-to-r from-cedar-soft/70 via-surface to-ochre-soft/70 border border-border shadow-float flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
-            <div className="space-y-1.5 max-w-2xl">
-              <span className="text-xs font-mono text-ochre font-semibold tracking-wider uppercase block">
-                Latihan Baca Arab Gundul
-              </span>
-              <h3 className="font-serif text-xl sm:text-2xl text-ink font-normal">
-                Belum Lancar Membaca Naskah Gundul? Latihan Bersama Asisten
-              </h3>
-              <p className="text-xs sm:text-sm text-ink-secondary leading-relaxed">
-                Tebak kedudukan nahwu dan harakat akhir kata per kata. Dilengkapi penjelasan langsung saat salah menjawab, serta opsi latihan menggunakan teks dari arsip kajianmu.
-              </p>
+          {/* Interactive Talaqqi Studio Banner (Prestigious & Authentic) */}
+          <div className="rounded-3xl bg-gradient-to-br from-[#163324] via-[#10271B] to-[#0A1A12] text-surface border border-ochre/30 p-6 sm:p-10 shadow-float relative overflow-hidden">
+            {/* Subtle background arabesque watermark */}
+            <div className="absolute -right-10 -bottom-10 w-72 h-72 rounded-full bg-ochre/10 blur-3xl pointer-events-none" />
+
+            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+              <div className="lg:col-span-7 space-y-3 text-left">
+                <span className="text-xs font-mono text-ochre-light uppercase tracking-wider font-semibold block">
+                  Studio Latihan Baca Arab Gundul
+                </span>
+                <h3 className="font-serif text-2xl sm:text-3xl text-surface font-normal leading-snug">
+                  Bimbingan Membaca Naskah Kata Demi Kata Bersama Asisten
+                </h3>
+                <p className="text-xs sm:text-sm text-stone-300 leading-relaxed max-w-xl">
+                  Belum lancar membaca naskah tanpa harakat? Asisten akan membimbingmu menebak kedudukan nahwu
+                  dan syakal akhir dengan evaluasi kaidah instan. Kamu juga bisa latihan menggunakan naskah dari arsip kajianmu sendiri!
+                </p>
+                <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
+                  <Link
+                    href="/practice"
+                    className="w-full sm:w-auto px-6 py-3 rounded-xl bg-ochre hover:bg-ochre-light text-surface font-semibold text-xs sm:text-sm transition flex items-center justify-center gap-2 shadow-glowOchre active:scale-95"
+                  >
+                    <span>Mulai Latihan Baca</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                  <Link
+                    href="/library"
+                    className="w-full sm:w-auto px-5 py-3 rounded-xl border border-white/20 hover:bg-white/10 text-stone-200 text-xs sm:text-sm font-medium transition text-center"
+                  >
+                    Buka Koleksi Arsip
+                  </Link>
+                </div>
+              </div>
+
+              {/* Interactive Preview Widget on the Right */}
+              <div className="lg:col-span-5 bg-surface/10 backdrop-blur-md rounded-2xl border border-white/10 p-5 space-y-3 select-none text-left">
+                <div className="flex items-center justify-between text-[11px] font-mono text-stone-300 border-b border-white/10 pb-2">
+                  <span>Simulasi Bimbingan</span>
+                  <span className="text-emerald-400 font-semibold">Asisten Aktif</span>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-arabic text-2xl text-surface font-bold">
+                      ذَهَبَ أَهْلُ الدُّثُورِ
+                    </span>
+                    <span className="text-[10px] font-mono bg-ochre/30 text-ochre-light px-2 py-0.5 rounded">
+                      Kata ke-1: ذَهَبَ
+                    </span>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-black/20 border border-white/10 space-y-1.5 text-xs">
+                    <span className="text-stone-300 block font-medium">Tebak kedudukan kata:</span>
+                    <div className="flex items-center gap-2 text-[11px] text-emerald-300 font-semibold bg-emerald-950/60 p-2 rounded-lg border border-emerald-500/30">
+                      <Check className="w-3.5 h-3.5 shrink-0" />
+                      <span>Fi&apos;il Madhi (Mabni &apos;alal Fathi) &bull; Benar!</span>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-stone-300 italic">
+                    &ldquo;Tepat sekali! Kata kerja masa lampau yang mabni fathah.&rdquo;
+                  </p>
+                </div>
+              </div>
             </div>
-            <Link
-              href="/practice"
-              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-cedar hover:bg-cedar-hover text-surface text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 shadow-minimal shrink-0 active:scale-95"
-            >
-              <span>Mulai Latihan Baca</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
           </div>
         </section>
       </main>

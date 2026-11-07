@@ -41,12 +41,23 @@ body {
   background: #C8C5BB;
 }
 
-/* Fluid Ambient Backdrop */
+/* Authentic Paper Texture & Layered Ambient Backdrop */
 .bg-ambient-fluid {
+  background-color: #FAF8F5;
   background-image: 
-    radial-gradient(circle at 50% 0%, rgba(27, 59, 43, 0.045) 0%, transparent 55%),
-    radial-gradient(circle at 85% 25%, rgba(154, 103, 53, 0.035) 0%, transparent 45%),
-    radial-gradient(circle at 15% 45%, rgba(27, 59, 43, 0.03) 0%, transparent 40%);
+    radial-gradient(at 0% 0%, rgba(27, 59, 43, 0.045) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(154, 103, 53, 0.055) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(27, 59, 43, 0.035) 0px, transparent 60%),
+    url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%239A6735' fill-opacity='0.025' fill-rule='evenodd'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2.5a2.5 2.5 0 0 1 5 0V16h15v2H25v2.5a2.5 2.5 0 0 1-5 0zM0 38h40v2H0v-2zM0 0h40v2H0V0z'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Authentic Classical Parchment Grain */
+.bg-parchment-texture {
+  background-color: #FAF8F5;
+  background-image: 
+    radial-gradient(circle at 15% 15%, rgba(27, 59, 43, 0.03) 0%, transparent 40%),
+    radial-gradient(circle at 85% 30%, rgba(154, 103, 53, 0.035) 0%, transparent 45%),
+    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%231B3B2B' fill-opacity='0.018' fill-rule='evenodd'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");
 }
 
 @keyframes auroraFloat {
