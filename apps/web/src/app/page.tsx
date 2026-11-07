@@ -306,10 +306,17 @@ export default function HomePage() {
                 <ArrowRight className="w-4 h-4 text-stone-300 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
+                href="/practice"
+                className="w-full sm:w-auto px-5 py-3 rounded-lg border border-ochre/40 bg-ochre-soft/80 hover:bg-ochre-soft text-ochre text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 shadow-minimal"
+              >
+                <span>Latihan Baca Arab</span>
+                <span className="text-[10px] bg-ochre text-surface px-1.5 py-0.5 rounded-full font-mono">Baru</span>
+              </Link>
+              <Link
                 href="/library"
                 className="w-full sm:w-auto px-5 py-3 rounded-lg border border-border bg-surface hover:bg-subtle text-ink-secondary text-xs sm:text-sm font-medium transition text-center"
               >
-                Buka Koleksi Arsip
+                Buka Arsip
               </Link>
             </div>
 
@@ -513,6 +520,28 @@ export default function HomePage() {
                 siap difotokopi untuk materi kajian santri dan thalabul &apos;ilmi.
               </p>
             </div>
+          </div>
+
+          {/* Featured Talaqqi Banner */}
+          <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-cedar-soft/80 via-surface to-ochre-soft/80 border border-border shadow-float flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div className="space-y-2 max-w-2xl">
+              <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-ochre/15 text-ochre text-[11px] font-mono font-semibold">
+                <span>Fitur Baru • Mode Talaqqi Terbimbing</span>
+              </div>
+              <h3 className="font-serif text-2xl text-ink font-normal">
+                Belum Lancar Membaca Arab Gundul? Latihan Bersama Ustadz
+              </h3>
+              <p className="text-xs sm:text-sm text-ink-secondary leading-relaxed">
+                Bimbingan kata demi kata: tebak posisi nahwu, tentukan harakat akhir yang tepat, dan buka syakal matan sedikit demi sedikit. Dilengkapi evaluasi dan alasan kaidah jika salah menebak.
+              </p>
+            </div>
+            <Link
+              href="/practice"
+              className="px-6 py-3 rounded-xl bg-cedar hover:bg-cedar-hover text-surface text-xs sm:text-sm font-semibold transition flex items-center gap-2 shadow-minimal shrink-0 active:scale-95"
+            >
+              <span>Mulai Latihan Sorogan</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </section>
       </main>

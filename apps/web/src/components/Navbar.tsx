@@ -21,10 +21,22 @@ export default function Navbar() {
         </Link>
 
         {/* Clean Minimal Navigation */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
+          <Link
+            href="/practice"
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300 ease-fluid active:scale-95 flex items-center gap-1.5 ${
+              pathname === '/practice'
+                ? 'bg-ink text-surface shadow-minimal'
+                : 'text-ink-secondary hover:text-ink hover:bg-subtle'
+            }`}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-ochre animate-pulse" />
+            <span>Latihan Baca</span>
+          </Link>
+
           <Link
             href="/library"
-            className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-300 ease-fluid active:scale-95 ${
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300 ease-fluid active:scale-95 ${
               pathname === '/library'
                 ? 'bg-ink text-surface shadow-minimal'
                 : 'text-ink-secondary hover:text-ink hover:bg-subtle'
